@@ -12,7 +12,7 @@ export function useTeamData(teamId: string) {
   };
 
   const { data, error, isLoading } = useSWR(initData && teamId ? `/api/teams/${teamId}` : null, fetcher);
-
+  console.log(data);
   return { team: data?.team, isLoading, error };
 }
 
@@ -154,13 +154,13 @@ export function useGameLineups(gameId: string) {
     if (res.ok) mutate();
   };
 
-  return { 
-    lineups: data?.lineups || [], 
-    isLoading, 
-    error, 
-    createLineup, 
-    deleteLineup, 
-    assignPlayer, 
+  return {
+    lineups: data?.lineups || [],
+    isLoading,
+    error,
+    createLineup,
+    deleteLineup,
+    assignPlayer,
     removePlayer,
     updateLineupScore
   };
