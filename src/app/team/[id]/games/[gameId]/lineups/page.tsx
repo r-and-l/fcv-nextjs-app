@@ -72,20 +72,30 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string, gameId: string }
               <div className="text-right flex-1 font-medium">{lineups[0].name}</div>
               
               {isEditingScore ? (
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="number" 
-                    value={score1 === '' ? (lineups[0].score ?? '') : score1} 
-                    onChange={e => setScore1(e.target.value ? Number(e.target.value) : '')}
-                    className="w-12 h-12 text-center text-xl font-bold bg-zinc-100 dark:bg-zinc-800 rounded-xl border-none outline-none"
-                  />
+                <div className="flex items-center space-x-3">
+                  <div className="flex flex-col items-center space-y-1">
+                    <button onClick={() => setScore1(s => (s === '' ? 0 : s) + 1)} className="w-10 h-8 flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-lg font-bold">+</button>
+                    <input 
+                      type="number" 
+                      value={score1} 
+                      onChange={e => setScore1(e.target.value ? Number(e.target.value) : '')}
+                      className="w-12 h-12 text-center text-xl font-bold bg-zinc-100 dark:bg-zinc-800 rounded-xl border-none outline-none"
+                    />
+                    <button onClick={() => setScore1(s => Math.max(0, (s === '' ? 0 : s) - 1))} className="w-10 h-8 flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-lg font-bold">-</button>
+                  </div>
+
                   <span className="text-2xl font-bold text-zinc-300">:</span>
-                  <input 
-                    type="number" 
-                    value={score2 === '' ? (lineups[1].score ?? '') : score2} 
-                    onChange={e => setScore2(e.target.value ? Number(e.target.value) : '')}
-                    className="w-12 h-12 text-center text-xl font-bold bg-zinc-100 dark:bg-zinc-800 rounded-xl border-none outline-none"
-                  />
+                  
+                  <div className="flex flex-col items-center space-y-1">
+                    <button onClick={() => setScore2(s => (s === '' ? 0 : s) + 1)} className="w-10 h-8 flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-lg font-bold">+</button>
+                    <input 
+                      type="number" 
+                      value={score2} 
+                      onChange={e => setScore2(e.target.value ? Number(e.target.value) : '')}
+                      className="w-12 h-12 text-center text-xl font-bold bg-zinc-100 dark:bg-zinc-800 rounded-xl border-none outline-none"
+                    />
+                    <button onClick={() => setScore2(s => Math.max(0, (s === '' ? 0 : s) - 1))} className="w-10 h-8 flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-lg font-bold">-</button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center space-x-3 bg-zinc-50 dark:bg-zinc-800 px-6 py-3 rounded-2xl">
@@ -102,8 +112,8 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string, gameId: string }
               {isEditingScore ? (
                 <button 
                   onClick={async () => {
-                    if (score1 !== '') await updateLineupScore(lineups[0].id, Number(score1));
-                    if (score2 !== '') await updateLineupScore(lineups[1].id, Number(score2));
+                    await updateLineupScore(lineups[0].id, score1 === '' ? null : Number(score1));
+                    await updateLineupScore(lineups[1].id, score2 === '' ? null : Number(score2));
                     setIsEditingScore(false);
                   }}
                   className="px-6 py-2 bg-green-500 text-white rounded-xl font-medium text-sm hover:bg-green-600 transition-colors"

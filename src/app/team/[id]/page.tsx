@@ -4,15 +4,17 @@ import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TelegramProvider, useTelegram } from '@/components/providers/TelegramProvider';
 import { useTeamData, useGames } from '@/hooks/useTeamData';
+import { useProfile } from '@/hooks/useProfile';
 
 function TeamDashboard({ teamId }: { teamId: string }) {
   const router = useRouter();
   const { isReady, user } = useTelegram();
   const { team, isLoading: teamLoading, error: teamError } = useTeamData(teamId);
   const { games, isLoading: gamesLoading, registerForGame, deleteGame } = useGames(teamId);
+  const { profile, isLoading: profileLoading } = useProfile();
 
   if (!isReady) return <div className="min-h-screen flex items-center justify-center text-zinc-500">Загрузка...</div>;
-  if (teamLoading) return <div className="min-h-screen flex items-center justify-center text-zinc-500">Загрузка команды...</div>;
+  if (teamLoading || profileLoading) return <div className="min-h-screen flex items-center justify-center text-zinc-500">Загрузка команды...</div>;
   if (teamError || !team) return <div className="min-h-screen flex items-center justify-center text-red-500">Ошибка или нет доступа</div>;
 
   return (
@@ -24,12 +26,11 @@ function TeamDashboard({ teamId }: { teamId: string }) {
           <div>
             <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{team.name}</h1>
             <p className="text-sm text-zinc-500 mt-1">
-              {team.role === 'ADMIN' ? '👑 ' : '👥'}
               <button
                 onClick={() => router.push('/profile')}
                 className="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
               >
-                {user?.first_name}
+                {team.role === 'ADMIN' ? '👑 ' : '👥'} {profile?.first_name || user?.first_name}
               </button>
             </p>
           </div>

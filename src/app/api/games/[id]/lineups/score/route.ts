@@ -7,12 +7,12 @@ export const PATCH = withTelegramAuth(async (req, user, context: any) => {
   const { lineupId, score } = await req.json();
 
   if (!lineupId) throw new Error('Missing lineupId');
-  if (score === undefined || score === null) throw new Error('Missing score');
+  if (score === undefined) throw new Error('Missing score');
 
   // Любой авторизованный пользователь может обновлять счет (по просьбе клиента)
   const lineup = await prisma.gameLineup.update({
     where: { id: lineupId },
-    data: { score: Number(score) }
+    data: { score: score === null || score === '' ? null : Number(score) }
   });
 
   return { lineup };

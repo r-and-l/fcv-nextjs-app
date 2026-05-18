@@ -144,7 +144,7 @@ export function useGameLineups(gameId: string) {
     if (res.ok) mutate();
   };
 
-  const updateLineupScore = async (lineupId: string, score: number) => {
+  const updateLineupScore = async (lineupId: string, score: number | null | '') => {
     if (!initData) return;
     const res = await fetch(`/api/games/${gameId}/lineups/score`, {
       method: 'PATCH',
