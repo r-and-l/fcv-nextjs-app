@@ -60,7 +60,9 @@ function Dashboard() {
       </div>
     );
   }
-  log('Telegram init data:', { initData, chat });
+  console.log('Telegram init data:', { initData, chat });
+  console.log('isReady:', isReady);
+  console.log('startParam:', startParam);
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 bg-zinc-50 dark:bg-black text-black dark:text-white">
       <div className="max-w-md w-full space-y-6">
