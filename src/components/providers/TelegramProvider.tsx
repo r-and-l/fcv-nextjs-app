@@ -24,6 +24,31 @@ export function useTelegram() {
   return useContext(TelegramContext);
 }
 
+const TELEGRAM_TEST_ENABLED = process.env.NEXT_PUBLIC_TELEGRAM_TEST_ENABLED === 'true';
+
+function getLocalTelegramUser(): TelegramUser | null {
+  const id = process.env.NEXT_PUBLIC_TELEGRAM_TEST_USER_ID;
+  if (!id) return null;
+
+  return {
+    id: Number(id),
+    first_name: process.env.NEXT_PUBLIC_TELEGRAM_TEST_USER_FIRST_NAME || 'Test',
+    last_name: process.env.NEXT_PUBLIC_TELEGRAM_TEST_USER_LAST_NAME,
+    username: process.env.NEXT_PUBLIC_TELEGRAM_TEST_USER_USERNAME,
+  } as TelegramUser;
+}
+
+function getLocalTelegramChat() {
+  const id = process.env.NEXT_PUBLIC_TELEGRAM_TEST_CHAT_ID;
+  if (!id) return undefined;
+
+  return {
+    id: Number(id),
+    type: process.env.NEXT_PUBLIC_TELEGRAM_TEST_CHAT_TYPE || 'group',
+    title: process.env.NEXT_PUBLIC_TELEGRAM_TEST_CHAT_TITLE || 'Local Telegram chat',
+  };
+}
+
 export function TelegramProvider({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const [initData, setInitData] = useState('');
@@ -32,8 +57,17 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [chat, setChat] = useState<any>();
 
   useEffect(() => {
-    // Ждем монтирования на клиенте
     if (typeof window !== 'undefined') {
+      const isLocalhost =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '[::1]';
+      const useLocalTelegramFallback = isLocalhost && TELEGRAM_TEST_ENABLED;
+      const localUser = getLocalTelegramUser();
+      const localChat = getLocalTelegramChat();
+      const localInitData = process.env.NEXT_PUBLIC_TELEGRAM_TEST_INIT_DATA || '';
+      const localStartParam = process.env.NEXT_PUBLIC_TELEGRAM_TEST_START_PARAM;
+
       try {
         WebApp.ready();
         setInitData(WebApp.initData);
@@ -49,6 +83,12 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Telegram WebApp error:', error);
       } finally {
+        if (useLocalTelegramFallback) {
+          setInitData((value) => value || localInitData);
+          setUser((value: TelegramUser | null) => value || localUser);
+          setStartParam((value) => value || localStartParam);
+          setChat((value: any) => value || localChat);
+        }
         setIsReady(true);
       }
     }

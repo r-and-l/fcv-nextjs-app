@@ -7,6 +7,7 @@ import { useTelegram } from '@/components/providers/TelegramProvider';
 import { TeamList } from '@/components/TeamList';
 import { useUsers } from '@/hooks/useUsers';
 import { useTeams } from '@/hooks/useTeams';
+import { log } from 'console';
 
 function Dashboard() {
   const router = useRouter();
@@ -59,7 +60,7 @@ function Dashboard() {
       </div>
     );
   }
-
+  log('Telegram init data:', { initData, chat });
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 bg-zinc-50 dark:bg-black text-black dark:text-white">
       <div className="max-w-md w-full space-y-6">
