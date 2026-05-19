@@ -12,7 +12,6 @@ export function useTeamData(teamId: string) {
   };
 
   const { data, error, isLoading } = useSWR(initData && teamId ? `/api/teams/${teamId}` : null, fetcher);
-  console.log(data);
   return { team: data?.team, isLoading, error };
 }
 
@@ -51,7 +50,17 @@ export function useGames(teamId: string) {
     }
   };
 
-  return { games: data?.games || [], isLoading, error, registerForGame, deleteGame };
+  const updateLineupScore = async (gameId: string, lineupId: string, score: number | null) => {
+    if (!initData) return;
+    const res = await fetch(`/api/games/${gameId}/lineups/score`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
+      body: JSON.stringify({ lineupId, score })
+    });
+    if (res.ok) mutate();
+  };
+
+  return { games: data?.games || [], isLoading, error, registerForGame, deleteGame, updateLineupScore };
 }
 
 export function useArchiveGames(teamId: string) {

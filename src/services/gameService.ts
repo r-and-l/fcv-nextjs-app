@@ -76,7 +76,8 @@ export const gameService = {
         include: {
           registrations: {
             include: { user: true }
-          }
+          },
+          lineups: true
         }
       });
     } catch (error: any) {

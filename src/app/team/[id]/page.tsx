@@ -1,8 +1,17 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { TelegramProvider, useTelegram } from '@/components/providers/TelegramProvider';
+import {
+  TelegramApp,
+  useTelegram,
+  PageLayout,
+  PageHeader,
+  BackButton,
+  LoadingScreen,
+  TeamAdminActions,
+  UpcomingGamesList,
+} from '@/components';
 import { useTeamData, useGames } from '@/hooks/useTeamData';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -10,193 +19,59 @@ function TeamDashboard({ teamId }: { teamId: string }) {
   const router = useRouter();
   const { isReady, user } = useTelegram();
   const { team, isLoading: teamLoading, error: teamError } = useTeamData(teamId);
-  const { games, isLoading: gamesLoading, registerForGame, deleteGame } = useGames(teamId);
+  const { games, isLoading: gamesLoading, registerForGame, deleteGame, updateLineupScore } =
+    useGames(teamId);
   const { profile, isLoading: profileLoading } = useProfile();
 
-  if (!isReady) return <div className="min-h-screen flex items-center justify-center text-zinc-500">Загрузка...</div>;
-  if (teamLoading || profileLoading) return <div className="min-h-screen flex items-center justify-center text-zinc-500">Загрузка команды...</div>;
-  if (teamError || !team) return <div className="min-h-screen flex items-center justify-center text-red-500">Ошибка или нет доступа</div>;
+  if (!isReady) return <LoadingScreen />;
+  if (teamLoading || profileLoading) return <LoadingScreen message="Загрузка команды..." />;
+  if (teamError || !team) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Ошибка или нет доступа
+      </div>
+    );
+  }
+
+  const isAdmin = team.role === 'ADMIN';
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black text-black dark:text-white p-4">
-      <div className="max-w-md mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{team.name}</h1>
-            <p className="text-sm text-zinc-500 mt-1">
-              <button
-                onClick={() => router.push('/profile')}
-                className="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              >
-                {team.role === 'ADMIN' ? '👑 ' : '👥'} {profile?.first_name || user?.first_name}
-              </button>
-            </p>
-          </div>
-          <button onClick={() => router.push('/?noredirect=1')} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-            Назад
+    <PageLayout>
+      <PageHeader
+        title={team.name}
+        subtitle={
+          <button
+            onClick={() => router.push('/profile')}
+            className="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          >
+            {isAdmin ? '👑 ' : '👥'} {profile?.first_name || user?.first_name}
           </button>
-        </div>
+        }
+        action={<BackButton onClick={() => router.push('/?noredirect=1')} />}
+      />
 
-        {/* Admin Section */}
-        {team.role === 'ADMIN' && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.push(`/team/${teamId}/admin`)}
-              className="flex-1 flex items-center justify-center space-x-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3 rounded-xl transition-colors font-medium border border-blue-500/20"
-            >
-              <span>⚙️</span>
-              <span>Расписание</span>
-            </button>
-            <button
-              onClick={() => router.push(`/team/${teamId}/members`)}
-              className="flex-1 flex items-center justify-center space-x-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 py-3 rounded-xl transition-colors font-medium border border-purple-500/20"
-            >
-              <span>👥</span>
-              <span>Участники</span>
-            </button>
-          </div>
-        )}
+      {isAdmin && <TeamAdminActions teamId={teamId} />}
 
-        {/* Games Section */}
-        <div>
-          <div className="flex justify-between items-center mb-3 px-1">
-            <h2 className="text-lg font-bold">Предстоящие игры</h2>
-            <button
-              onClick={() => router.push(`/team/${teamId}/archive`)}
-              className="text-sm font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-            >
-              Архив ➡️
-            </button>
-          </div>
-
-          {gamesLoading ? (
-            <div className="text-center text-zinc-500 py-4">Загрузка игр...</div>
-          ) : games.length === 0 ? (
-            <div className="text-center bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-sm shadow-sm">
-              Нет запланированных игр
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {(() => {
-                const now = new Date();
-                const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
-                const daysToSunday = 7 - dayOfWeek;
-
-                const endOfWeek = new Date(now);
-                endOfWeek.setDate(now.getDate() + daysToSunday);
-                endOfWeek.setHours(23, 59, 59, 999);
-
-                const thisWeekGames = games.filter((g: any) => new Date(g.date) <= endOfWeek);
-                const nextWeekGames = games.filter((g: any) => new Date(g.date) > endOfWeek);
-
-                const renderGame = (game: any) => {
-                  const going = game.registrations?.filter((r: any) => r.status === 'GOING') || [];
-                  const notGoing = game.registrations?.filter((r: any) => r.status === 'NOT_GOING') || [];
-                  // Найти статус текущего юзера
-                  const myReg = game.registrations?.find((r: any) => r.user_id === user?.id);
-
-                  return (
-                    <div key={game.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                            {new Date(game.date).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
-                          </div>
-                          <div className="text-zinc-500 text-sm mt-1">
-                            ⏰ {new Date(game.date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                            {game.location && ` • 📍 ${game.location}`}
-                          </div>
-                        </div>
-
-                        {team.role === 'ADMIN' && (
-                          <button
-                            onClick={() => {
-                              if (confirm('Вы уверены, что хотите удалить эту игру? Сообщение в группе тоже будет удалено.')) {
-                                deleteGame(game.id);
-                              }
-                            }}
-                            className="text-red-500 hover:text-red-600 p-2 bg-red-50 dark:bg-red-500/10 rounded-xl transition-colors"
-                            title="Удалить игру"
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Кнопки записи */}
-                      <div className="grid grid-cols-2 gap-2 mb-4">
-                        <button
-                          onClick={() => registerForGame(game.id, 'GOING')}
-                          className={`py-2 rounded-xl font-medium transition-all active:scale-[0.98] ${myReg?.status === 'GOING' ? 'bg-green-500 text-white shadow-md' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
-                        >
-                          {myReg?.status === 'GOING' ? '' : '✅'} Иду
-                        </button>
-                        <button
-                          onClick={() => registerForGame(game.id, 'NOT_GOING')}
-                          className={`py-2 rounded-xl font-medium transition-all active:scale-[0.98] ${myReg?.status === 'NOT_GOING' ? 'bg-red-500 text-white shadow-md' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
-                        >
-                          {myReg?.status === 'NOT_GOING' ? '' : '❌'} Не иду
-                        </button>
-                      </div>
-
-                      {/* Кнопка составов */}
-                      <button
-                        onClick={() => router.push(`/team/${teamId}/games/${game.id}/lineups`)}
-                        className="w-full py-2 mb-4 flex justify-center items-center gap-2 rounded-xl font-medium transition-all active:scale-[0.98] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/40"
-                      >
-                        <span>📋</span>
-                        <span>Составы на игру</span>
-                      </button>
-
-                      {/* Статистика */}
-                      <div className="flex justify-between text-xs text-zinc-500 mt-2 px-1">
-                        <span>Идут: {going.length}</span>
-                        <span>Не идут: {notGoing.length}</span>
-                      </div>
-                    </div>
-                  );
-                };
-
-                return (
-                  <div className="space-y-6">
-                    {thisWeekGames.length > 0 && (
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-zinc-500 px-1 uppercase tracking-wider">Эта неделя</h3>
-                        {thisWeekGames.map(renderGame)}
-                      </div>
-                    )}
-
-                    {nextWeekGames.length > 0 && (
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-zinc-500 px-1 uppercase tracking-wider mt-6">Следующие игры</h3>
-                        {nextWeekGames.map(renderGame)}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-
-      </div>
-    </div>
+      <UpcomingGamesList
+        games={games}
+        teamId={teamId}
+        userId={user?.id}
+        isAdmin={isAdmin}
+        isLoading={gamesLoading}
+        onRegister={registerForGame}
+        onDelete={deleteGame}
+        onUpdateScore={updateLineupScore}
+      />
+    </PageLayout>
   );
 }
 
 export default function TeamPage({ params }: { params: Promise<{ id: string }> }) {
-  const unwrappedParams = use(params);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => { setIsMounted(true); }, []);
-
-  if (!isMounted) return null;
+  const { id } = use(params);
 
   return (
-    <TelegramProvider>
-      <TeamDashboard teamId={unwrappedParams.id} />
-    </TelegramProvider>
+    <TelegramApp>
+      <TeamDashboard teamId={id} />
+    </TelegramApp>
   );
 }

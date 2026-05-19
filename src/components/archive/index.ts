@@ -1,0 +1,1 @@
+export { ArchiveGamesList } from './ArchiveGamesList';
