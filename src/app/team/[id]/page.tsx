@@ -131,13 +131,13 @@ function TeamDashboard({ teamId }: { teamId: string }) {
                           onClick={() => registerForGame(game.id, 'GOING')}
                           className={`py-2 rounded-xl font-medium transition-all active:scale-[0.98] ${myReg?.status === 'GOING' ? 'bg-green-500 text-white shadow-md' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
                         >
-                          ✅ Иду
+                          {myReg?.status === 'GOING' ? '' : '✅'} Иду
                         </button>
                         <button
                           onClick={() => registerForGame(game.id, 'NOT_GOING')}
                           className={`py-2 rounded-xl font-medium transition-all active:scale-[0.98] ${myReg?.status === 'NOT_GOING' ? 'bg-red-500 text-white shadow-md' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
                         >
-                          ❌ Не иду
+                          {myReg?.status === 'NOT_GOING' ? '' : '❌'} Не иду
                         </button>
                       </div>
 
