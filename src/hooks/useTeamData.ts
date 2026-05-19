@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { useTelegram } from '@/components/providers/TelegramProvider';
+import type { Game, GameLineup } from '@/types/game';
 
 export function useTeamData(teamId: string) {
   const { initData } = useTelegram();
@@ -18,14 +19,17 @@ export function useTeamData(teamId: string) {
 export function useGames(teamId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
-    if (!initData) return [];
+  const fetcher = async (url: string): Promise<{ games: Game[] }> => {
+    if (!initData) return { games: [] };
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch games');
     return res.json();
   };
 
-  const { data, error, isLoading, mutate } = useSWR(initData && teamId ? `/api/games?teamId=${teamId}` : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ games: Game[] }>(
+    initData && teamId ? `/api/games?teamId=${teamId}` : null,
+    fetcher
+  );
 
   const registerForGame = async (gameId: string, status: 'GOING' | 'NOT_GOING' | 'MAYBE') => {
     if (!initData) return;
@@ -66,14 +70,17 @@ export function useGames(teamId: string) {
 export function useArchiveGames(teamId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
-    if (!initData) return [];
+  const fetcher = async (url: string): Promise<{ games: Game[] }> => {
+    if (!initData) return { games: [] };
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch archive games');
     return res.json();
   };
 
-  const { data, error, isLoading } = useSWR(initData && teamId ? `/api/games/archive?teamId=${teamId}` : null, fetcher);
+  const { data, error, isLoading } = useSWR<{ games: Game[] }>(
+    initData && teamId ? `/api/games/archive?teamId=${teamId}` : null,
+    fetcher
+  );
 
   return { games: data?.games || [], isLoading, error };
 }
@@ -106,14 +113,17 @@ export function useTeamMembers(teamId: string) {
 export function useGameLineups(gameId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
-    if (!initData) return [];
+  const fetcher = async (url: string): Promise<{ lineups: GameLineup[] }> => {
+    if (!initData) return { lineups: [] };
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch lineups');
     return res.json();
   };
 
-  const { data, error, isLoading, mutate } = useSWR(initData && gameId ? `/api/games/${gameId}/lineups` : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ lineups: GameLineup[] }>(
+    initData && gameId ? `/api/games/${gameId}/lineups` : null,
+    fetcher
+  );
 
   const createLineup = async (name: string) => {
     if (!initData) return;
