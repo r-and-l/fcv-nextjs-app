@@ -4,6 +4,7 @@ import type { Game } from '@/types/game';
 import { getGoingCount, hasTwoLineups } from '@/lib/game';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MatchScoreDisplay } from '@/components/lineups/MatchScoreDisplay';
+import { formatInMoscow } from '@/lib/timezone';
 
 interface ArchiveGamesListProps {
   games: Game[];
@@ -28,7 +29,7 @@ function ArchiveGameCard({ game }: { game: Game }) {
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
       <div className="mb-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
         <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-          {new Date(game.date).toLocaleDateString('ru-RU', {
+          {formatInMoscow(game.date, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',

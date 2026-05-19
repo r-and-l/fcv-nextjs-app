@@ -14,6 +14,7 @@ import {
   LineupCard,
   AddLineupForm,
 } from '@/components';
+import { formatInMoscow } from '@/lib/timezone';
 import { useTeamData, useGameLineups, useGames } from '@/hooks/useTeamData';
 
 function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }) {
@@ -56,7 +57,7 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
     <PageLayout>
       <PageHeader
         title="Составы на игру"
-        subtitle={new Date(game.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+        subtitle={formatInMoscow(game.date, { day: 'numeric', month: 'long' })}
         action={<BackButton onClick={() => router.push(`/team/${teamId}`)} />}
       />
 

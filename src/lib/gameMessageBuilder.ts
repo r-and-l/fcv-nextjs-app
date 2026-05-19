@@ -1,14 +1,15 @@
 import { telegramApi } from './telegramApi';
 import { prisma } from './prisma';
+import { formatInMoscow } from './timezone';
 
 export const gameMessageBuilder = {
   buildMessageText(game: any, registrations: any[]) {
-    const dateStr = new Date(game.date).toLocaleString('ru-RU', {
+    const dateStr = formatInMoscow(game.date, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
 
     let text = `⚽ <b>Сбор на игру</b>\n`;

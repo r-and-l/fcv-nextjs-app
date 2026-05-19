@@ -1,5 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
+import {
+  addDaysToDateString,
+  getMoscowDateString,
+  getMoscowWeekday,
+  parseMoscowDateTime,
+} from '@/lib/timezone';
 
 export const gameService = {
   /**
@@ -153,6 +159,7 @@ export const gameService = {
   async generateMissingGames(teamId?: string) {
     try {
       const today = new Date();
+      const todayMoscow = getMoscowDateString(today);
       // Получаем расписание (для одной команды или для всех)
       const schedules = await prisma.teamSchedule.findMany({
         where: teamId ? { team_id: teamId } : undefined,
@@ -162,15 +169,12 @@ export const gameService = {
       let createdCount = 0;
 
       for (const schedule of schedules) {
-        // Проверяем следующие 7 дней
+        // Проверяем следующие 7 дней (календарь — Москва)
         for (let i = 1; i <= 7; i++) {
-          const targetDate = new Date(today);
-          targetDate.setDate(today.getDate() + i);
+          const targetDateStr = addDaysToDateString(todayMoscow, i);
 
-          if (targetDate.getDay() === schedule.day_of_week) {
-            const [hours, minutes] = schedule.time.split(':').map(Number);
-            const gameDate = new Date(targetDate);
-            gameDate.setHours(hours, minutes, 0, 0);
+          if (getMoscowWeekday(parseMoscowDateTime(targetDateStr, '12:00')) === schedule.day_of_week) {
+            const gameDate = parseMoscowDateTime(targetDateStr, schedule.time);
 
             // Создаем игру только если до нее осталось менее 72 часов (ровно 3 суток)
             const hoursUntilGame = (gameDate.getTime() - today.getTime()) / (1000 * 60 * 60);
