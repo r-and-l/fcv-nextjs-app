@@ -14,13 +14,13 @@ import {
   AddLineupForm,
 } from '@/components';
 import { formatInMoscow } from '@/lib/timezone';
-import { useTeamData, useGameLineups, useGames } from '@/hooks/useTeamData';
+import { useTeamData, useGameLineups, useGame } from '@/hooks/useTeamData';
 
 function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }) {
   const router = useRouter();
   const { isReady } = useTelegram();
   const { team, isLoading: teamLoading } = useTeamData(teamId);
-  const { games, isLoading: gamesLoading } = useGames(teamId);
+  const { game, isLoading: gameLoading } = useGame(gameId);
   const {
     lineups,
     isLoading: lineupsLoading,
@@ -29,8 +29,6 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
     assignPlayer,
     removePlayer,
   } = useGameLineups(gameId);
-
-  const game = useMemo(() => games.find((g) => g.id === gameId), [games, gameId]);
 
   const now = useMemo(() => new Date(), []);
   const gameEndTime = useMemo(() => {
@@ -48,10 +46,25 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
     return going.filter((r) => !assignedUserIds.has(Number(r.user_id)));
   }, [game, lineups]);
 
-  if (!isReady || teamLoading || gamesLoading || lineupsLoading) return <LoadingScreen />;
+  if (!isReady || teamLoading || gameLoading || lineupsLoading) return <LoadingScreen />;
 
   if (!game || !team) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Ошибка</div>;
+    return (
+      <PageLayout>
+        <PageHeader
+          title="Составы на игру"
+          subtitle="Ошибка"
+          action={<BackButton onClick={() => router.push(`/team/${teamId}`)} />}
+        />
+        <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-4">
+          <span className="text-4xl mb-4">⚠️</span>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Игра не найдена</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-xs mb-6">
+            Не удалось загрузить данные об этой игре. Возможно, она была удалена.
+          </p>
+        </div>
+      </PageLayout>
+    );
   }
 
   const isCoachOrAdmin = team.role === 'ADMIN' || team.role === 'COACH';

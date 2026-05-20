@@ -6,7 +6,13 @@ export const GET = withTelegramAuth(async (req, user, context: any) => {
   const gameId = params.id;
   
   const game = await prisma.game.findUnique({
-    where: { id: gameId }
+    where: { id: gameId },
+    include: {
+      registrations: {
+        include: { user: true }
+      },
+      lineups: true
+    }
   });
 
   return { game };

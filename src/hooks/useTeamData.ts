@@ -67,6 +67,24 @@ export function useGames(teamId: string) {
   return { games: data?.games || [], isLoading, error, registerForGame, deleteGame, updateLineupScore };
 }
 
+export function useGame(gameId: string) {
+  const { initData } = useTelegram();
+
+  const fetcher = async (url: string): Promise<{ game: Game | null }> => {
+    if (!initData) return { game: null };
+    const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
+    if (!res.ok) throw new Error('Failed to fetch game');
+    return res.json();
+  };
+
+  const { data, error, isLoading } = useSWR<{ game: Game | null }>(
+    initData && gameId ? `/api/games/${gameId}` : null,
+    fetcher
+  );
+
+  return { game: data?.game || null, isLoading, error };
+}
+
 export function useArchiveGames(teamId: string) {
   const { initData } = useTelegram();
 
