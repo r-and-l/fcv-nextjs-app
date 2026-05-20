@@ -77,12 +77,22 @@ export function useArchiveGames(teamId: string) {
     return res.json();
   };
 
-  const { data, error, isLoading } = useSWR<{ games: Game[] }>(
+  const { data, error, isLoading, mutate } = useSWR<{ games: Game[] }>(
     initData && teamId ? `/api/games/archive?teamId=${teamId}` : null,
     fetcher
   );
 
-  return { games: data?.games || [], isLoading, error };
+  const updateLineupScore = async (gameId: string, lineupId: string, score: number | null) => {
+    if (!initData) return;
+    const res = await fetch(`/api/games/${gameId}/lineups/score`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
+      body: JSON.stringify({ lineupId, score })
+    });
+    if (res.ok) mutate();
+  };
+
+  return { games: data?.games || [], isLoading, error, updateLineupScore };
 }
 
 export function useTeamMembers(teamId: string) {

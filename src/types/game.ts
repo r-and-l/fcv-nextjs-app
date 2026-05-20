@@ -20,6 +20,7 @@ export interface Game {
   id: string;
   date: string;
   location?: string | null;
+  duration?: number | null;
   registrations?: GameRegistration[];
   lineups?: GameLineup[];
 }

@@ -74,6 +74,7 @@ model Game {
   date                DateTime
   location            String?
   description         String?
+  duration            Int      @default(60)
   telegram_message_id BigInt?
   created_at          DateTime @default(now())
 

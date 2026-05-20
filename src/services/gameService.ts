@@ -11,7 +11,7 @@ export const gameService = {
   /**
    * Создает новую игру для команды
    */
-  async createGame(teamId: string, date: Date, location?: string, description?: string) {
+  async createGame(teamId: string, date: Date, location?: string, description?: string, duration?: number) {
     try {
       const game = await prisma.game.create({
         data: {
@@ -19,6 +19,7 @@ export const gameService = {
           date,
           location,
           description,
+          ...(duration !== undefined ? { duration } : {}),
         }
       });
 
@@ -243,8 +244,8 @@ export const gameService = {
   async createDefaultLineup(gameId: string) {
     return await prisma.gameLineup.createMany({
       data: [
-        { game_id: gameId, name: 'Красные' },
-        { game_id: gameId, name: 'Зелёные' }
+        { game_id: gameId, name: 'Красные', score: 0 },
+        { game_id: gameId, name: 'Зелёные', score: 0 }
       ]
     });
   },
@@ -256,7 +257,8 @@ export const gameService = {
     return await prisma.gameLineup.create({
       data: {
         game_id: gameId,
-        name
+        name,
+        score: 0
       }
     });
   },

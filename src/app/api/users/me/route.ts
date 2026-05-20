@@ -1,5 +1,6 @@
 import { withTelegramAuth } from '@/lib/api-handler';
 import { prisma } from '@/lib/prisma';
+import { userService } from '@/services/userService';
 
 export const GET = withTelegramAuth(async (req, user) => {
   const dbUser = await prisma.user.findUnique({
@@ -10,7 +11,9 @@ export const GET = withTelegramAuth(async (req, user) => {
     throw new Error('User not found');
   }
 
-  return { user: dbUser };
+  const stats = await userService.getUserStats(user.id);
+
+  return { user: { ...dbUser, stats } };
 });
 
 export const PATCH = withTelegramAuth(async (req, user) => {

@@ -5,7 +5,7 @@ import { teamService } from '@/services/teamService';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
 
 export const POST = withTelegramAuth(async (req, user) => {
-  const { teamId, date, time, location, description } = await req.json();
+  const { teamId, date, time, location, description, duration } = await req.json();
 
   if (!teamId || !date || !time) {
     throw new Error('Missing required fields');
@@ -20,7 +20,13 @@ export const POST = withTelegramAuth(async (req, user) => {
   const gameDate = parseMoscowDateTime(date, time);
 
   // Создаем игру
-  const game = await gameService.createGame(teamId, gameDate, location, description);
+  const game = await gameService.createGame(
+    teamId,
+    gameDate,
+    location,
+    description,
+    duration !== undefined ? Number(duration) : undefined
+  );
 
   // Отправляем сообщение в Telegram
   if (team.telegram_chat_id) {

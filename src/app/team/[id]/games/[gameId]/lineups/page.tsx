@@ -9,7 +9,6 @@ import {
   PageHeader,
   BackButton,
   LoadingScreen,
-  MatchScoreBoard,
   AvailablePlayersPanel,
   LineupCard,
   AddLineupForm,
@@ -29,10 +28,15 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
     deleteLineup,
     assignPlayer,
     removePlayer,
-    updateLineupScore,
   } = useGameLineups(gameId);
 
-  const game = games.find((g) => g.id === gameId);
+  const game = useMemo(() => games.find((g) => g.id === gameId), [games, gameId]);
+
+  const now = useMemo(() => new Date(), []);
+  const gameEndTime = useMemo(() => {
+    if (!game) return new Date();
+    return new Date(new Date(game.date).getTime() + (game.duration || 60) * 60 * 1000);
+  }, [game]);
 
   const availablePlayers = useMemo(() => {
     if (!game) return [];
@@ -53,6 +57,11 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
   const isCoachOrAdmin = team.role === 'ADMIN' || team.role === 'COACH';
   const isAdmin = team.role === 'ADMIN';
 
+  const isFinished = now > gameEndTime;
+
+  // Если игра завершена, редактировать составы может только ADMIN
+  const canEditLineups = isFinished ? isAdmin : isCoachOrAdmin;
+
   return (
     <PageLayout>
       <PageHeader
@@ -61,9 +70,7 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
         action={<BackButton onClick={() => router.push(`/team/${teamId}`)} />}
       />
 
-      <MatchScoreBoard lineups={lineups} onUpdateScore={updateLineupScore} />
-
-      {isCoachOrAdmin && (
+      {canEditLineups && (
         <AvailablePlayersPanel
           players={availablePlayers}
           lineups={lineups}
@@ -76,15 +83,15 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
           <LineupCard
             key={lineup.id}
             lineup={lineup}
-            isAdmin={isAdmin}
-            isCoachOrAdmin={isCoachOrAdmin}
+            isAdmin={isAdmin && !isFinished}
+            isCoachOrAdmin={canEditLineups}
             onDelete={deleteLineup}
             onRemovePlayer={removePlayer}
           />
         ))}
       </div>
 
-      {isAdmin && <AddLineupForm onAdd={createLineup} />}
+      {isAdmin && !isFinished && <AddLineupForm onAdd={createLineup} />}
     </PageLayout>
   );
 }

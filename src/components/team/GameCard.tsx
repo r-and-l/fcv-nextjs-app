@@ -29,6 +29,11 @@ export function GameCard({
   const today = isToday(game.date);
   const myReg = getMyRegistration(game, userId);
 
+  const now = new Date();
+  const gameEndTime = new Date(new Date(game.date).getTime() + (game.duration || 60) * 60 * 1000);
+  const isFinished = now > gameEndTime;
+  const canEditScore = !isFinished || isAdmin;
+
   return (
     <div
       className={`p-4 rounded-2xl glass-panel transition-all duration-300 hover:shadow-md ${
@@ -49,6 +54,7 @@ export function GameCard({
           <GameScorePanel
             lineups={game.lineups}
             compact
+            canEdit={canEditScore}
             onUpdateScore={(lineupId, score) => onUpdateScore(game.id, lineupId, score)}
           />
         </div>

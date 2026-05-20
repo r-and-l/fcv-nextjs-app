@@ -17,9 +17,11 @@ function ArchiveDashboard({ teamId }: { teamId: string }) {
   const router = useRouter();
   const { isReady } = useTelegram();
   const { team, isLoading: teamLoading } = useTeamData(teamId);
-  const { games, isLoading: gamesLoading } = useArchiveGames(teamId);
+  const { games, isLoading: gamesLoading, updateLineupScore } = useArchiveGames(teamId);
 
   if (!isReady || teamLoading || gamesLoading) return <LoadingScreen />;
+
+  const isAdmin = team?.role === 'ADMIN';
 
   return (
     <PageLayout>
@@ -28,7 +30,12 @@ function ArchiveDashboard({ teamId }: { teamId: string }) {
         subtitle={team?.name}
         action={<BackButton onClick={() => router.back()} />}
       />
-      <ArchiveGamesList games={games} />
+      <ArchiveGamesList
+        games={games}
+        teamId={teamId}
+        isAdmin={isAdmin}
+        onUpdateScore={updateLineupScore}
+      />
     </PageLayout>
   );
 }

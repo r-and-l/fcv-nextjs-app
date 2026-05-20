@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import { Field, Input, Button } from '@/components/ui/form';
+import { Field, Input, Select, Button } from '@/components/ui/form';
 
 interface ManualGameFormProps {
   teamId: string;
@@ -13,6 +13,7 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('19:00');
   const [location, setLocation] = useState('');
+  const [duration, setDuration] = useState('60');
   const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -25,7 +26,14 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
       const res = await fetch('/api/games/manual', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
-        body: JSON.stringify({ teamId, date, time, location, description }),
+        body: JSON.stringify({
+          teamId,
+          date,
+          time,
+          location,
+          description,
+          duration: Number(duration),
+        }),
       });
 
       if (res.ok) {
@@ -33,6 +41,7 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
         setDate('');
         setLocation('');
         setDescription('');
+        setDuration('60');
       } else {
         alert('Ошибка при создании игры');
       }
@@ -54,13 +63,24 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
           </Field>
         </div>
 
-        <Field label="Локация">
-          <Input
-            placeholder="Где играем?"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Локация">
+            <Input
+              placeholder="Где играем?"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </Field>
+          <Field label="Длительность">
+            <Select value={duration} onChange={(e) => setDuration(e.target.value)}>
+              <option value="60">60 минут (1 ч)</option>
+              <option value="90">90 минут (1.5 ч)</option>
+              <option value="120">120 минут (2 ч)</option>
+              <option value="150">150 минут (2.5 ч)</option>
+              <option value="180">180 минут (3 ч)</option>
+            </Select>
+          </Field>
+        </div>
 
         <Field label="Описание">
           <Input

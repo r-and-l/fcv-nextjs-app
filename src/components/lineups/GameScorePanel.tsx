@@ -9,9 +9,10 @@ interface GameScorePanelProps {
   lineups: [GameLineup, GameLineup];
   onUpdateScore: (lineupId: string, score: number | null) => Promise<void>;
   compact?: boolean;
+  canEdit?: boolean;
 }
 
-export function GameScorePanel({ lineups, onUpdateScore, compact = false }: GameScorePanelProps) {
+export function GameScorePanel({ lineups, onUpdateScore, compact = false, canEdit = true }: GameScorePanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [score1, setScore1] = useState<number | ''>('');
   const [score2, setScore2] = useState<number | ''>('');
@@ -61,12 +62,14 @@ export function GameScorePanel({ lineups, onUpdateScore, compact = false }: Game
       ) : (
         <div className="space-y-3">
           <MatchScoreDisplay lineups={lineups} size={compact ? 'sm' : 'lg'} />
-          <button
-            onClick={startEdit}
-            className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-          >
-            ✏️ {lineups[0].score != null ? 'Изменить счёт' : 'Ввести счёт'}
-          </button>
+          {canEdit && (
+            <button
+              onClick={startEdit}
+              className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+            >
+              ✏️ {lineups[0].score != null ? 'Изменить счёт' : 'Ввести счёт'}
+            </button>
+          )}
         </div>
       )}
     </div>
