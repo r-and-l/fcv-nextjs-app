@@ -81,6 +81,7 @@ model Game {
   team          Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
   registrations GameRegistration[]
   lineups       GameLineup[]
+  mini_games    MiniGame[]
 
   @@map("games")
 }
@@ -112,8 +113,10 @@ model GameLineup {
   score      Int?     // Счет игры для этого состава
   created_at DateTime @default(now())
 
-  game       Game     @relation(fields: [game_id], references: [id], onDelete: Cascade)
-  players    LineupPlayer[]
+  game            Game     @relation(fields: [game_id], references: [id], onDelete: Cascade)
+  players         LineupPlayer[]
+  home_mini_games MiniGame[] @relation("HomeMiniGames")
+  away_mini_games MiniGame[] @relation("AwayMiniGames")
 
   @@map("game_lineups")
 }
@@ -129,5 +132,21 @@ model LineupPlayer {
 
   @@unique([lineup_id, user_id])
   @@map("lineup_players")
+}
+
+model MiniGame {
+  id             String   @id @default(uuid())
+  game_id        String
+  home_lineup_id String
+  away_lineup_id String
+  home_score     Int?
+  away_score     Int?
+  created_at     DateTime @default(now())
+
+  game        Game       @relation(fields: [game_id], references: [id], onDelete: Cascade)
+  home_lineup GameLineup @relation("HomeMiniGames", fields: [home_lineup_id], references: [id], onDelete: Cascade)
+  away_lineup GameLineup @relation("AwayMiniGames", fields: [away_lineup_id], references: [id], onDelete: Cascade)
+
+  @@map("mini_games")
 }
 

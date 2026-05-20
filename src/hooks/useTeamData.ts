@@ -221,3 +221,46 @@ export function useGameLineups(gameId: string) {
     updateLineupScore
   };
 }
+
+export function useMiniGames(gameId: string) {
+  const { initData } = useTelegram();
+
+  const fetcher = async (url: string): Promise<{ miniGames: any[] }> => {
+    if (!initData) return { miniGames: [] };
+    const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
+    if (!res.ok) throw new Error('Failed to fetch mini-games');
+    return res.json();
+  };
+
+  const { data, error, isLoading, mutate } = useSWR<{ miniGames: any[] }>(
+    initData && gameId ? `/api/games/${gameId}/mini-games` : null,
+    fetcher
+  );
+
+  const generateMatches = async () => {
+    if (!initData) return;
+    const res = await fetch(`/api/games/${gameId}/mini-games/generate`, {
+      method: 'POST',
+      headers: { 'x-telegram-init-data': initData }
+    });
+    if (res.ok) mutate();
+  };
+
+  const updateScore = async (miniGameId: string, homeScore: number | null, awayScore: number | null) => {
+    if (!initData) return;
+    const res = await fetch(`/api/games/${gameId}/mini-games`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
+      body: JSON.stringify({ miniGameId, homeScore, awayScore })
+    });
+    if (res.ok) mutate();
+  };
+
+  return {
+    miniGames: data?.miniGames || [],
+    isLoading,
+    error,
+    generateMatches,
+    updateScore
+  };
+}

@@ -11,7 +11,13 @@ export const GET = withTelegramAuth(async (req, user, context: any) => {
       registrations: {
         include: { user: true }
       },
-      lineups: true
+      lineups: true,
+      mini_games: {
+        include: {
+          home_lineup: true,
+          away_lineup: true
+        }
+      }
     }
   });
 

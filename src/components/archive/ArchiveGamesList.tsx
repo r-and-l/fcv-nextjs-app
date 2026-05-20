@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import type { Game } from '@/types/game';
 import { getGoingCount, hasTwoLineups } from '@/lib/game';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -52,6 +53,52 @@ function ArchiveGameCard({
 }) {
   const router = useRouter();
 
+  const isTournament = (game.lineups?.length || 0) >= 3;
+  const tournamentSummary = useMemo(() => {
+    if (!isTournament) return null;
+    const miniGames = game.mini_games || [];
+    if (miniGames.length === 0) {
+      return `Турнир: ${game.lineups?.length || 0} составов`;
+    }
+
+    const statsMap: Record<string, { name: string; points: number; diff: number }> = {};
+    game.lineups?.forEach((l) => {
+      statsMap[l.id] = { name: l.name, points: 0, diff: 0 };
+    });
+
+    let playedCount = 0;
+    miniGames.forEach((mg) => {
+      const home = statsMap[mg.home_lineup_id];
+      const away = statsMap[mg.away_lineup_id];
+      if (home && away && mg.home_score !== null && mg.away_score !== null) {
+        playedCount++;
+        home.diff += mg.home_score - mg.away_score;
+        away.diff += mg.away_score - mg.home_score;
+        if (mg.home_score > mg.away_score) {
+          home.points += 3;
+        } else if (mg.home_score < mg.away_score) {
+          away.points += 3;
+        } else {
+          home.points += 1;
+          away.points += 1;
+        }
+      }
+    });
+
+    if (playedCount === 0) {
+      return `Турнир: ${game.lineups?.length || 0} составов (игры не начаты)`;
+    }
+
+    const sorted = Object.values(statsMap).sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return b.diff - a.diff;
+    });
+
+    const isAllFinished = playedCount === miniGames.length;
+    const prefix = isAllFinished ? '🏆 Победитель' : ' Лидер';
+    return `${prefix}: ${sorted[0].name} (${sorted[0].points} очков)`;
+  }, [game.lineups, game.mini_games, isTournament]);
+
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
       <div className="mb-3 border-b border-zinc-100 dark:border-zinc-800 pb-3 flex justify-between items-start">
@@ -81,7 +128,16 @@ function ArchiveGameCard({
         )}
       </div>
 
-      {hasTwoLineups(game.lineups) ? (
+      {isTournament ? (
+        <div className="mb-2 p-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-150 dark:border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+            {tournamentSummary}
+          </span>
+          <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+            Турнир
+          </span>
+        </div>
+      ) : hasTwoLineups(game.lineups) ? (
         <div className="mb-2">
           {isAdmin ? (
             <GameScorePanel

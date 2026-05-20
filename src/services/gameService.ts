@@ -84,7 +84,13 @@ export const gameService = {
           registrations: {
             include: { user: true }
           },
-          lineups: true
+          lineups: true,
+          mini_games: {
+            include: {
+              home_lineup: true,
+              away_lineup: true
+            }
+          }
         }
       });
     } catch (error: any) {
@@ -107,6 +113,12 @@ export const gameService = {
           lineups: true,
           registrations: {
             include: { user: true }
+          },
+          mini_games: {
+            include: {
+              home_lineup: true,
+              away_lineup: true
+            }
           }
         }
       });
@@ -306,5 +318,104 @@ export const gameService = {
         user_id: BigInt(userId)
       }
     });
+  },
+
+  /**
+   * Получить мини-игры для турнира (3+ составов)
+   */
+  async getMiniGames(gameId: string) {
+    try {
+      return await prisma.miniGame.findMany({
+        where: { game_id: gameId },
+        orderBy: { created_at: 'asc' },
+        include: {
+          home_lineup: true,
+          away_lineup: true
+        }
+      });
+    } catch (error: any) {
+      throw new Error(`Prisma error: ${error.message}`);
+    }
+  },
+
+  /**
+   * Сгенерировать матчи кругового турнира
+   */
+  async generateMiniGames(gameId: string) {
+    try {
+      const game = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: { lineups: true }
+      });
+      if (!game) throw new Error('Game not found');
+
+      const N = game.lineups.length;
+      if (N < 3) {
+        throw new Error('Для турнира требуется не менее 3 составов');
+      }
+
+      // Количество матчей в одном круге: N * (N - 1) / 2
+      const matchesPerCircle = (N * (N - 1)) / 2;
+      const matchDuration = 10; // 10 минут на мини-игру
+      const circleDuration = matchesPerCircle * matchDuration;
+
+      // Рассчитываем количество полных кругов
+      const circles = Math.max(1, Math.floor(game.duration / circleDuration));
+
+      // Генерируем уникальные пары
+      const pairs: { homeIdx: number; awayIdx: number }[] = [];
+      for (let i = 0; i < N; i++) {
+        for (let j = i + 1; j < N; j++) {
+          pairs.push({ homeIdx: i, awayIdx: j });
+        }
+      }
+
+      const matchesToCreate = [];
+      for (let circle = 0; circle < circles; circle++) {
+        for (const pair of pairs) {
+          // Чередуем хозяев и гостей для разнообразия
+          const home = circle % 2 === 0 ? pair.homeIdx : pair.awayIdx;
+          const away = circle % 2 === 0 ? pair.awayIdx : pair.homeIdx;
+          matchesToCreate.push({
+            game_id: gameId,
+            home_lineup_id: game.lineups[home].id,
+            away_lineup_id: game.lineups[away].id,
+            home_score: null,
+            away_score: null
+          });
+        }
+      }
+
+      // Сбрасываем старые игры
+      await prisma.miniGame.deleteMany({
+        where: { game_id: gameId }
+      });
+
+      // Создаем новые
+      await prisma.miniGame.createMany({
+        data: matchesToCreate
+      });
+
+      return await this.getMiniGames(gameId);
+    } catch (error: any) {
+      throw new Error(`Failed to generate tournament matches: ${error.message}`);
+    }
+  },
+
+  /**
+   * Обновить счет мини-игры
+   */
+  async updateMiniGameScore(miniGameId: string, homeScore: number | null, awayScore: number | null) {
+    try {
+      return await prisma.miniGame.update({
+        where: { id: miniGameId },
+        data: {
+          home_score: homeScore,
+          away_score: awayScore
+        }
+      });
+    } catch (error: any) {
+      throw new Error(`Prisma error: ${error.message}`);
+    }
   }
 };

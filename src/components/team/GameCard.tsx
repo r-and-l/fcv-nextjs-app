@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import type { Game } from '@/types';
 import { isToday, formatGameDate, formatGameTime } from '@/lib/dates';
 import { getGoingCount, getNotGoingCount, getMyRegistration, hasTwoLineups } from '@/lib/game';
@@ -34,6 +35,50 @@ export function GameCard({
   const isFinished = now > gameEndTime;
   const canEditScore = !isFinished || isAdmin;
 
+  const isTournament = (game.lineups?.length || 0) >= 3;
+  const tournamentSummary = useMemo(() => {
+    if (!isTournament) return null;
+    const miniGames = game.mini_games || [];
+    if (miniGames.length === 0) {
+      return `Турнир: ${game.lineups?.length || 0} команд`;
+    }
+    
+    const statsMap: Record<string, { name: string; points: number; diff: number }> = {};
+    game.lineups?.forEach((l) => {
+      statsMap[l.id] = { name: l.name, points: 0, diff: 0 };
+    });
+
+    let playedCount = 0;
+    miniGames.forEach((mg) => {
+      const home = statsMap[mg.home_lineup_id];
+      const away = statsMap[mg.away_lineup_id];
+      if (home && away && mg.home_score !== null && mg.away_score !== null) {
+        playedCount++;
+        home.diff += mg.home_score - mg.away_score;
+        away.diff += mg.away_score - mg.home_score;
+        if (mg.home_score > mg.away_score) {
+          home.points += 3;
+        } else if (mg.home_score < mg.away_score) {
+          away.points += 3;
+        } else {
+          home.points += 1;
+          away.points += 1;
+        }
+      }
+    });
+
+    if (playedCount === 0) {
+      return `Турнир: ${game.lineups?.length || 0} команд (матчи не начаты)`;
+    }
+
+    const sorted = Object.values(statsMap).sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return b.diff - a.diff;
+    });
+
+    return `Лидер: ${sorted[0].name} (${sorted[0].points} очков, сыграно ${playedCount}/${miniGames.length})`;
+  }, [game.lineups, game.mini_games, isTournament]);
+
   return (
     <div
       className={`p-4 rounded-2xl glass-panel transition-all duration-300 hover:shadow-md ${
@@ -49,15 +94,23 @@ export function GameCard({
         onDelete={() => onDelete(game.id)}
       />
 
-      {today && hasTwoLineups(game.lineups) && onUpdateScore && (
-        <div className="mb-4">
-          <GameScorePanel
-            lineups={game.lineups}
-            compact
-            canEdit={canEditScore}
-            onUpdateScore={(lineupId, score) => onUpdateScore(game.id, lineupId, score)}
-          />
+      {isTournament ? (
+        <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-150 dark:border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+            🏆 {tournamentSummary}
+          </span>
         </div>
+      ) : (
+        today && hasTwoLineups(game.lineups) && onUpdateScore && (
+          <div className="mb-4">
+            <GameScorePanel
+              lineups={game.lineups}
+              compact
+              canEdit={canEditScore}
+              onUpdateScore={(lineupId, score) => onUpdateScore(game.id, lineupId, score)}
+            />
+          </div>
+        )
       )}
 
       <RegistrationButtons

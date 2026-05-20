@@ -5,3 +5,5 @@ export { MatchScoreBoard } from './MatchScoreBoard';
 export { AvailablePlayersPanel } from './AvailablePlayersPanel';
 export { LineupCard } from './LineupCard';
 export { AddLineupForm } from './AddLineupForm';
+export { TournamentTable } from './TournamentTable';
+export { MiniGamesPanel } from './MiniGamesPanel';
