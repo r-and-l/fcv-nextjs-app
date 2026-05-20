@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 export const PATCH = withTelegramAuth(async (req, user, context: any) => {
   const params = await context.params;
-  const gameId = params.id;
+  const _gameId = params.id;
   const { lineupId, score } = await req.json();
 
   if (!lineupId) throw new Error('Missing lineupId');

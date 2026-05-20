@@ -4,7 +4,7 @@ import { gameService } from '@/services/gameService';
 export const dynamic = 'force-dynamic';
 
 // Разрешаем только авторизованные cron-запросы от Vercel
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   // В Vercel есть специальный заголовок, который можно проверять для безопасности:
   // if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) ...
 

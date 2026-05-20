@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 
 export function PageLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black text-black dark:text-white p-4">
-      <div className="max-w-md mx-auto space-y-6">{children}</div>
+    <div className="min-h-screen p-4 pb-12">
+      <div className="max-w-md mx-auto space-y-5 animate-fade-in">{children}</div>
     </div>
   );
 }

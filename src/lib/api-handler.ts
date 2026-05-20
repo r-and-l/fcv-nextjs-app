@@ -21,7 +21,7 @@ export function withTelegramAuth(handler: ApiHandler) {
         try {
           const body = await req.clone().json();
           initData = body.initData;
-        } catch (e) {}
+        } catch {}
       }
 
       if (!initData) {

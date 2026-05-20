@@ -121,5 +121,52 @@ export const teamService = {
       where: { user_id_team_id: { user_id: BigInt(targetUserId), team_id: teamId } },
       data: { role: newRole }
     });
+  },
+
+  async upsertTeamFromChat(chatId: number | bigint, name: string) {
+    return await prisma.team.upsert({
+      where: { telegram_chat_id: BigInt(chatId) },
+      update: { name },
+      create: {
+        telegram_chat_id: BigInt(chatId),
+        name
+      }
+    });
+  },
+
+  async assignAdminToTeam(userId: number | bigint, teamId: string) {
+    return await prisma.teamMember.upsert({
+      where: {
+        user_id_team_id: {
+          user_id: BigInt(userId),
+          team_id: teamId
+        }
+      },
+      update: {
+        role: 'ADMIN'
+      },
+      create: {
+        user_id: BigInt(userId),
+        team_id: teamId,
+        role: 'ADMIN'
+      }
+    });
+  },
+
+  async ensureTeamMembership(userId: number | bigint, teamId: string) {
+    return await prisma.teamMember.upsert({
+      where: {
+        user_id_team_id: {
+          user_id: BigInt(userId),
+          team_id: teamId
+        }
+      },
+      update: {},
+      create: {
+        user_id: BigInt(userId),
+        team_id: teamId,
+        role: 'MEMBER'
+      }
+    });
   }
 };

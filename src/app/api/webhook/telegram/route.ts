@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { gameService } from '@/services/gameService';
+import { userService } from '@/services/userService';
+import { teamService } from '@/services/teamService';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
 
 export async function POST(req: NextRequest) {
@@ -12,22 +14,8 @@ export async function POST(req: NextRequest) {
       const tgUser = update.message.from;
       
       if (tgUser && !tgUser.is_bot) {
-        // Сохраняем пользователя в БД
-        await prisma.user.upsert({
-          where: { id: BigInt(tgUser.id) },
-          update: {
-            username: tgUser.username || null,
-            first_name: tgUser.first_name || null,
-            last_name: tgUser.last_name || null,
-          },
-          create: {
-            id: BigInt(tgUser.id),
-            username: tgUser.username || null,
-            first_name: tgUser.first_name || null,
-            last_name: tgUser.last_name || null,
-          }
-        });
-        
+        // Сохраняем пользователя в БД через сервис
+        await userService.upsertUser(tgUser);
         console.log(`[Webhook] User ${tgUser.id} registered via /start`);
       }
     }
@@ -40,54 +28,17 @@ export async function POST(req: NextRequest) {
       if ((chat.type === 'group' || chat.type === 'supergroup') && 
           (new_chat_member.status === 'member' || new_chat_member.status === 'administrator')) {
         
-        // 1. Сохраняем пользователя, который добавил бота
+        // 1. Сохраняем пользователя, который добавил бота, через сервис
         if (from && !from.is_bot) {
-          await prisma.user.upsert({
-            where: { id: BigInt(from.id) },
-            update: {
-              username: from.username || null,
-              first_name: from.first_name || null,
-              last_name: from.last_name || null,
-            },
-            create: {
-              id: BigInt(from.id),
-              username: from.username || null,
-              first_name: from.first_name || null,
-              last_name: from.last_name || null,
-            }
-          });
+          await userService.upsertUser(from);
         }
 
-        // 2. Создаем или обновляем команду с ID этого чата
-        const team = await prisma.team.upsert({
-          where: { telegram_chat_id: BigInt(chat.id) },
-          update: {
-            name: chat.title || 'Новая команда'
-          },
-          create: {
-            telegram_chat_id: BigInt(chat.id),
-            name: chat.title || 'Новая команда'
-          }
-        });
+        // 2. Создаем или обновляем команду с ID этого чата через сервис
+        const team = await teamService.upsertTeamFromChat(chat.id, chat.title || 'Новая команда');
 
-        // 3. Связываем пользователя (from) с командой как ADMIN
+        // 3. Связываем пользователя (from) с командой как ADMIN через сервис
         if (from && !from.is_bot) {
-          await prisma.teamMember.upsert({
-            where: {
-              user_id_team_id: {
-                user_id: BigInt(from.id),
-                team_id: team.id
-              }
-            },
-            update: {
-              role: 'ADMIN' // Повышаем до админа, если он уже был
-            },
-            create: {
-              user_id: BigInt(from.id),
-              team_id: team.id,
-              role: 'ADMIN'
-            }
-          });
+          await teamService.assignAdminToTeam(from.id, team.id);
           console.log(`[Webhook] User ${from.id} assigned as ADMIN to Team ${team.id}`);
         }
 
@@ -117,21 +68,8 @@ export async function POST(req: NextRequest) {
       const from = query.from;
 
       if (data && data.startsWith('game_') && from) {
-        // Убедимся, что юзер есть в БД
-        await prisma.user.upsert({
-          where: { id: BigInt(from.id) },
-          update: {
-            username: from.username || null,
-            first_name: from.first_name || null,
-            last_name: from.last_name || null,
-          },
-          create: {
-            id: BigInt(from.id),
-            username: from.username || null,
-            first_name: from.first_name || null,
-            last_name: from.last_name || null,
-          }
-        });
+        // Убедимся, что юзер есть в БД через сервис
+        await userService.upsertUser(from);
 
         const parts = data.split('_');
         if (parts.length >= 3) {
@@ -144,20 +82,7 @@ export async function POST(req: NextRequest) {
           
           if (game) {
             // Добавляем юзера в участники команды, если его там еще нет
-            await prisma.teamMember.upsert({
-              where: {
-                user_id_team_id: {
-                  user_id: BigInt(from.id),
-                  team_id: game.team_id
-                }
-              },
-              update: {}, // Ничего не меняем, если он уже в команде
-              create: {
-                user_id: BigInt(from.id),
-                team_id: game.team_id,
-                role: 'MEMBER'
-              }
-            });
+            await teamService.ensureTeamMembership(from.id, game.team_id);
           }
 
           // Регистрируем на игру

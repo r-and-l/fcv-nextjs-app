@@ -29,7 +29,7 @@ export const gameMessageBuilder = {
 
     if (notGoing.length > 0) {
       text += `\n❌ <b>Не идут (${notGoing.length}):</b>\n`;
-      notGoing.forEach((r, i) => {
+      notGoing.forEach((r) => {
         const name = r.user.first_name || r.user.username || 'Игрок';
         text += `${name}\n`;
       });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { GameLineup } from '@/types/game';
+import type { GameLineup } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { ScoreEditor } from './ScoreEditor';
 
@@ -32,11 +32,14 @@ export function MatchScoreBoard({ lineups, onUpdateScore }: MatchScoreBoardProps
   };
 
   return (
-    <Card padding="sm" className="text-center">
-      <h2 className="text-sm font-bold text-zinc-500 mb-3 uppercase">Результат матча</h2>
+    <Card padding="sm" className="text-center bg-gradient-to-b from-zinc-950 to-zinc-900 border-zinc-800 shadow-lg relative overflow-hidden stadium-glow">
+      {/* Background highlight */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
 
-      <div className="flex items-center justify-center space-x-6">
-        <div className="text-right flex-1 font-medium">{pair[0].name}</div>
+      <h2 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-3 tracking-widest uppercase">ТАБЛО МАТЧА</h2>
+
+      <div className="flex items-center justify-between px-3 md:px-6 py-2">
+        <div className="text-right flex-1 font-semibold text-zinc-200 truncate pr-3">{pair[0].name}</div>
 
         {isEditing ? (
           <ScoreEditor
@@ -46,32 +49,32 @@ export function MatchScoreBoard({ lineups, onUpdateScore }: MatchScoreBoardProps
             onScore2Change={setScore2}
           />
         ) : (
-          <div className="flex items-center space-x-3 bg-zinc-50 dark:bg-zinc-800 px-6 py-3 rounded-2xl">
-            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+          <div className="flex items-center space-x-4 bg-black/60 border border-zinc-800/80 px-5 py-2.5 rounded-2xl shadow-inner font-mono">
+            <span className="text-3xl font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)] min-w-[20px] text-center">
               {pair[0].score ?? '-'}
             </span>
-            <span className="text-xl font-bold text-zinc-300">:</span>
-            <span className="text-3xl font-bold text-red-600 dark:text-red-400">
+            <span className="text-xl font-bold text-zinc-600 animate-pulse">:</span>
+            <span className="text-3xl font-extrabold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)] min-w-[20px] text-center">
               {pair[1].score ?? '-'}
             </span>
           </div>
         )}
 
-        <div className="text-left flex-1 font-medium">{pair[1].name}</div>
+        <div className="text-left flex-1 font-semibold text-zinc-200 truncate pl-3">{pair[1].name}</div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3.5 mb-1">
         {isEditing ? (
           <button
             onClick={saveScores}
-            className="px-6 py-2 bg-green-500 text-white rounded-xl font-medium text-sm hover:bg-green-600 transition-colors"
+            className="px-5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-xs tracking-wider uppercase active:scale-95 transition-all shadow-sm shadow-emerald-500/20 cursor-pointer"
           >
             Сохранить
           </button>
         ) : (
           <button
             onClick={startEdit}
-            className="text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-medium cursor-pointer"
           >
             ✏️ Изменить счет
           </button>

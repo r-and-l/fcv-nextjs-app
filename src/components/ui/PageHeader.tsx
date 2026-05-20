@@ -8,10 +8,10 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+    <div className="flex items-center justify-between glass-panel p-4 rounded-2xl shadow-sm backdrop-blur-md">
       <div>
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h1>
-        {subtitle && <div className="text-sm text-zinc-500 mt-1">{subtitle}</div>}
+        <h1 className="text-xl font-bold text-zinc-955 dark:text-zinc-50 tracking-tight">{title}</h1>
+        {subtitle && <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{subtitle}</div>}
       </div>
       {action}
     </div>
@@ -22,9 +22,12 @@ export function BackButton({ onClick, label = 'Назад' }: { onClick: () => v
   return (
     <button
       onClick={onClick}
-      className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+      className="flex items-center space-x-1 text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 transition-colors active:scale-95 duration-150"
     >
-      {label}
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      <span className="text-sm font-semibold">{label}</span>
     </button>
   );
 }
