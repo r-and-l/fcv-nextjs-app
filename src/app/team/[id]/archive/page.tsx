@@ -17,7 +17,7 @@ function ArchiveDashboard({ teamId }: { teamId: string }) {
   const router = useRouter();
   const { isReady } = useTelegram();
   const { team, isLoading: teamLoading } = useTeamData(teamId);
-  const { games, isLoading: gamesLoading, updateLineupScore } = useArchiveGames(teamId);
+  const { games, isLoading: gamesLoading, updateLineupScore, deleteGame } = useArchiveGames(teamId);
 
   if (!isReady || teamLoading || gamesLoading) return <LoadingScreen />;
 
@@ -35,6 +35,7 @@ function ArchiveDashboard({ teamId }: { teamId: string }) {
         teamId={teamId}
         isAdmin={isAdmin}
         onUpdateScore={updateLineupScore}
+        onDelete={deleteGame}
       />
     </PageLayout>
   );

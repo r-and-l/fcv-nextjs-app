@@ -92,7 +92,16 @@ export function useArchiveGames(teamId: string) {
     if (res.ok) mutate();
   };
 
-  return { games: data?.games || [], isLoading, error, updateLineupScore };
+  const deleteGame = async (gameId: string) => {
+    if (!initData) return;
+    const res = await fetch(`/api/games?gameId=${gameId}&teamId=${teamId}`, {
+      method: 'DELETE',
+      headers: { 'x-telegram-init-data': initData }
+    });
+    if (res.ok) mutate();
+  };
+
+  return { games: data?.games || [], isLoading, error, updateLineupScore, deleteGame };
 }
 
 export function useTeamMembers(teamId: string) {

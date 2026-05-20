@@ -13,9 +13,10 @@ interface ArchiveGamesListProps {
   teamId: string;
   isAdmin: boolean;
   onUpdateScore: (gameId: string, lineupId: string, score: number | null) => Promise<void>;
+  onDelete: (gameId: string) => Promise<void>;
 }
 
-export function ArchiveGamesList({ games, teamId, isAdmin, onUpdateScore }: ArchiveGamesListProps) {
+export function ArchiveGamesList({ games, teamId, isAdmin, onUpdateScore, onDelete }: ArchiveGamesListProps) {
   if (games.length === 0) {
     return <EmptyState message="Нет прошедших игр" />;
   }
@@ -29,6 +30,7 @@ export function ArchiveGamesList({ games, teamId, isAdmin, onUpdateScore }: Arch
           teamId={teamId}
           isAdmin={isAdmin}
           onUpdateScore={onUpdateScore}
+          onDelete={onDelete}
         />
       ))}
     </div>
@@ -40,17 +42,19 @@ function ArchiveGameCard({
   teamId,
   isAdmin,
   onUpdateScore,
+  onDelete,
 }: {
   game: Game;
   teamId: string;
   isAdmin: boolean;
   onUpdateScore: (gameId: string, lineupId: string, score: number | null) => Promise<void>;
+  onDelete: (gameId: string) => Promise<void>;
 }) {
   const router = useRouter();
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
-      <div className="mb-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+      <div className="mb-3 border-b border-zinc-100 dark:border-zinc-800 pb-3 flex justify-between items-start">
         <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
           {formatInMoscow(game.date, {
             day: 'numeric',
@@ -58,6 +62,23 @@ function ArchiveGameCard({
             year: 'numeric',
           })}
         </div>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              if (
+                confirm(
+                  'Вы уверены, что хотите удалить эту архивную игру? Это действие необратимо.'
+                )
+              ) {
+                onDelete(game.id);
+              }
+            }}
+            className="text-red-500 hover:text-white p-1.5 hover:bg-red-500 bg-red-500/10 dark:bg-red-500/10 rounded-lg transition-all duration-200 shrink-0 cursor-pointer active:scale-90 text-xs"
+            title="Удалить архивную игру"
+          >
+            🗑️
+          </button>
+        )}
       </div>
 
       {hasTwoLineups(game.lineups) ? (

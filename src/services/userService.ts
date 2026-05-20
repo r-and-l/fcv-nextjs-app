@@ -36,8 +36,7 @@ export const userService = {
         where: { id: BigInt(tgUser.id) },
         update: {
           username: tgUser.username || null,
-          first_name: tgUser.first_name || null,
-          last_name: tgUser.last_name || null,
+          // Не перезаписываем имя и фамилию при обновлении, чтобы сохранить кастомный профиль
         },
         create: {
           id: BigInt(tgUser.id),
@@ -107,8 +106,13 @@ export const userService = {
           const l1 = game.lineups[0];
           const l2 = game.lineups[1];
 
-          const score1 = l1.score ?? 0;
-          const score2 = l2.score ?? 0;
+          // Если счет не заполнен, не считаем в статистику
+          if (l1.score === null || l2.score === null) {
+            continue;
+          }
+
+          const score1 = l1.score;
+          const score2 = l2.score;
 
           // Определяем, в каком составе был игрок
           const isL1 = playerLineup.id === l1.id;
