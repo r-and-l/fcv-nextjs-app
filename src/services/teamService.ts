@@ -55,7 +55,7 @@ export const teamService = {
     });
   },
 
-  async createSchedule(userId: number, teamId: string, dayOfWeek: number, time: string, location: string) {
+  async createSchedule(userId: number, teamId: string, dayOfWeek: number, time: string, location: string, duration: number = 60) {
     const member = await prisma.teamMember.findUnique({
       where: { user_id_team_id: { user_id: BigInt(userId), team_id: teamId } }
     });
@@ -69,7 +69,8 @@ export const teamService = {
         team_id: teamId,
         day_of_week: dayOfWeek,
         time,
-        location
+        location,
+        duration
       }
     });
   },

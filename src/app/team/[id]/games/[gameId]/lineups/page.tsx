@@ -20,9 +20,9 @@ import { useTeamData, useGameLineups, useGame, useMiniGames } from '@/hooks/useT
 
 function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }) {
   const router = useRouter();
-  const { isReady } = useTelegram();
+  const { isReady, initData } = useTelegram();
   const { team, isLoading: teamLoading } = useTeamData(teamId);
-  const { game, isLoading: gameLoading } = useGame(gameId);
+  const { game, isLoading: gameLoading, mutate: mutateGame } = useGame(gameId);
   const {
     lineups,
     isLoading: lineupsLoading,
@@ -122,6 +122,47 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
         subtitle={formatInMoscow(game.date, { day: 'numeric', month: 'long' })}
         action={<BackButton onClick={() => router.back()} />}
       />
+
+      {isAdmin && !isFinished && (
+        <div className="mb-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col gap-2 shadow-sm">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">⏱️ Длительность игры:</span>
+            <select
+              value={game.duration || 60}
+              onChange={async (e) => {
+                const newDuration = Number(e.target.value);
+                try {
+                  const res = await fetch(`/api/games/${game.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData || '' },
+                    body: JSON.stringify({ duration: newDuration }),
+                  });
+                  if (res.ok) {
+                    mutateGame();
+                  } else {
+                    alert('Не удалось обновить длительность');
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert('Ошибка сети');
+                }
+              }}
+              className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-bold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="60">60 минут (1 ч)</option>
+              <option value="90">90 минут (1.5 ч)</option>
+              <option value="120">120 минут (2 ч)</option>
+              <option value="150">150 минут (2.5 ч)</option>
+              <option value="180">180 минут (3 ч)</option>
+            </select>
+          </div>
+          {isTournament && (
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 italic">
+              Изменение длительности игры пересчитает количество доступных кругов и матчей.
+            </p>
+          )}
+        </div>
+      )}
 
       {isTournament && (
         <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-850/50 border border-zinc-100 dark:border-zinc-800/50 rounded-xl text-xs text-zinc-500 dark:text-zinc-450">

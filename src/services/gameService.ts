@@ -210,6 +210,7 @@ export const gameService = {
                     team_id: schedule.team_id,
                     date: gameDate,
                     location: schedule.location,
+                    duration: schedule.duration,
                     description: 'Автоматически созданная игра по расписанию'
                   }
                 });

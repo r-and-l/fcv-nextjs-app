@@ -6,19 +6,20 @@ import { Field, Input, Select, Button } from '@/components/ui/form';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 
 interface AddScheduleFormProps {
-  onAdd: (day: number, time: string, location: string) => Promise<void>;
+  onAdd: (day: number, time: string, location: string, duration?: number) => Promise<void>;
 }
 
 export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
   const [day, setDay] = useState(1);
   const [time, setTime] = useState('19:00');
   const [location, setLocation] = useState('');
+  const [duration, setDuration] = useState('60');
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAdding(true);
-    await onAdd(day, time, location);
+    await onAdd(day, time, location, Number(duration));
     setLocation('');
     setIsAdding(false);
   };
@@ -42,13 +43,24 @@ export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
           </Field>
         </div>
 
-        <Field label="Локация (опционально)">
-          <Input
-            placeholder="Стадион, адрес или ссылка"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Локация (опционально)">
+            <Input
+              placeholder="Стадион, адрес или ссылка"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </Field>
+          <Field label="Длительность">
+            <Select value={duration} onChange={(e) => setDuration(e.target.value)}>
+              <option value="60">60 минут (1 ч)</option>
+              <option value="90">90 минут (1.5 ч)</option>
+              <option value="120">120 минут (2 ч)</option>
+              <option value="150">150 минут (2.5 ч)</option>
+              <option value="180">180 минут (3 ч)</option>
+            </Select>
+          </Field>
+        </div>
 
         <Button type="submit" disabled={isAdding}>
           {isAdding ? 'Добавление...' : 'Добавить в расписание'}

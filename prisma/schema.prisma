@@ -41,6 +41,7 @@ model TeamSchedule {
   day_of_week Int      // 0 (Воскресенье) - 6 (Суббота)
   time        String   // "HH:mm"
   location    String?
+  duration    Int      @default(60)
   created_at  DateTime @default(now())
 
   team        Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)

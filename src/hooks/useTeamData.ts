@@ -77,12 +77,12 @@ export function useGame(gameId: string) {
     return res.json();
   };
 
-  const { data, error, isLoading } = useSWR<{ game: Game | null }>(
+  const { data, error, isLoading, mutate } = useSWR<{ game: Game | null }>(
     initData && gameId ? `/api/games/${gameId}` : null,
     fetcher
   );
 
-  return { game: data?.game || null, isLoading, error };
+  return { game: data?.game || null, isLoading, error, mutate };
 }
 
 export function useArchiveGames(teamId: string) {
