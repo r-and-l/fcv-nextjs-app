@@ -102,6 +102,10 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
   const isAdmin = team.role === 'ADMIN';
   const isFinished = now > gameEndTime;
   const canEditLineups = isFinished ? isAdmin : isCoachOrAdmin;
+  const isMember = !!team.role;
+  const canEditMatches = isTournament 
+    ? (isFinished ? isAdmin : isMember) 
+    : canEditLineups;
 
   const handleGenerate = async () => {
     if (generating) return;
@@ -237,7 +241,7 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
             <MiniGamesPanel
               lineups={lineups}
               miniGames={miniGames}
-              canEdit={canEditLineups}
+              canEdit={canEditMatches}
               onUpdateScore={updateScore}
             />
           )}

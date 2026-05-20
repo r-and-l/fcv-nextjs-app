@@ -38,14 +38,9 @@ export const PATCH = withTelegramAuth(async (req, user) => {
     throw new Error('Access denied: not a team member');
   }
 
-  const isCoachOrAdmin = member.role === 'ADMIN' || member.role === 'COACH';
   if (isFinished) {
     if (member.role !== 'ADMIN') {
       throw new Error('Access denied: only ADMIN can change score after the game is finished');
-    }
-  } else {
-    if (!isCoachOrAdmin) {
-      throw new Error('Access denied: only coaches or admin can edit score');
     }
   }
 

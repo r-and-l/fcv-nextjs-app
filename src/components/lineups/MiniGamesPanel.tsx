@@ -111,8 +111,14 @@ function MiniGameCard({
     }
   };
 
+  const isPlayed = mg.home_score !== null && mg.away_score !== null;
+
   return (
-    <div className="p-3 bg-white dark:bg-zinc-900 border rounded-xl flex items-center justify-between transition-all duration-200 border-zinc-200 dark:border-zinc-800 shadow-sm">
+    <div className={`p-3 bg-white dark:bg-zinc-900 border rounded-xl flex items-center justify-between transition-all duration-200 ${
+      isPlayed 
+        ? 'border-zinc-200 dark:border-zinc-800 shadow-sm' 
+        : 'border-dashed border-zinc-200 dark:border-zinc-850 opacity-90'
+    }`}>
       {/* Match Info & Home Team */}
       <div className="flex-1 flex flex-col min-w-0 pr-2">
         <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1">
@@ -183,14 +189,34 @@ function MiniGameCard({
         </div>
       </div>
 
-      {/* Clear/Reset score button for Admin */}
-      {canEdit && (homeScore !== 0 || awayScore !== 0) && (
+      {/* Confirm 0-0 button */}
+      {canEdit && !isPlayed && (
         <button
           onClick={async () => {
-            if (confirm('Сбросить счет этого матча на 0-0?')) {
+            setUpdating(true);
+            try {
+              await onUpdateScore(mg.id, 0, 0);
+            } catch (e) {
+              console.error(e);
+            } finally {
+              setUpdating(false);
+            }
+          }}
+          className="ml-2 px-2 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-250/20 rounded-lg text-[10px] font-bold cursor-pointer transition-all shrink-0 active:scale-95"
+          title="Подтвердить результат 0-0"
+        >
+          0-0 ✔️
+        </button>
+      )}
+
+      {/* Clear/Reset score button for Admin */}
+      {canEdit && isPlayed && (
+        <button
+          onClick={async () => {
+            if (confirm('Сбросить результат матча на несыгранный?')) {
               setUpdating(true);
               try {
-                await onUpdateScore(mg.id, 0, 0);
+                await onUpdateScore(mg.id, null, null);
               } catch (e) {
                 console.error(e);
               } finally {
@@ -199,7 +225,7 @@ function MiniGameCard({
             }
           }}
           className="ml-2 p-1 text-zinc-350 hover:text-red-500 rounded hover:bg-red-500/5 transition-all text-xs cursor-pointer shrink-0"
-          title="Сбросить счет"
+          title="Сбросить результат"
         >
           🔄
         </button>

@@ -97,11 +97,32 @@ export const userService = {
       let losses = 0;
       let draws = 0;
 
+      // Извлекаем ID игр с 3+ составами, чтобы загрузить мини-игры одним запросом
+      const tournamentGameIds = lineupPlayers
+        .map(lp => lp.lineup.game)
+        .filter(g => g.lineups.length >= 3)
+        .map(g => g.id);
+
+      const allMiniGames = tournamentGameIds.length > 0 
+        ? await prisma.miniGame.findMany({
+            where: {
+              game_id: { in: tournamentGameIds }
+            }
+          })
+        : [];
+
       for (const lp of lineupPlayers) {
         const playerLineup = lp.lineup;
         const game = playerLineup.game;
 
-        // Считаем только игры, в которых ровно 2 состава
+        // Проверим, закончилась ли игра (с учетом duration)
+        const gameEndTime = new Date(game.date.getTime() + (game.duration || 60) * 60 * 1000);
+        if (now < gameEndTime) {
+          // Игра еще идет, не считаем в статистику
+          continue;
+        }
+
+        // Считаем обычные игры (ровно 2 состава)
         if (game.lineups.length === 2) {
           const l1 = game.lineups[0];
           const l2 = game.lineups[1];
@@ -119,19 +140,37 @@ export const userService = {
           const playerScore = isL1 ? score1 : score2;
           const opponentScore = isL1 ? score2 : score1;
 
-          // Проверим, закончилась ли игра (с учетом duration)
-          const gameEndTime = new Date(game.date.getTime() + (game.duration || 60) * 60 * 1000);
-          if (now < gameEndTime) {
-            // Игра еще идет, не считаем в статистику
-            continue;
-          }
-
           if (playerScore > opponentScore) {
             wins++;
           } else if (playerScore < opponentScore) {
             losses++;
           } else {
             draws++;
+          }
+        } 
+        // Считаем турнирные мини-игры (3+ состава)
+        else if (game.lineups.length >= 3) {
+          const myMiniGames = allMiniGames.filter(
+            mg => mg.game_id === game.id && 
+            (mg.home_lineup_id === playerLineup.id || mg.away_lineup_id === playerLineup.id)
+          );
+
+          for (const mg of myMiniGames) {
+            if (mg.home_score === null || mg.away_score === null) {
+              continue;
+            }
+
+            const isHome = mg.home_lineup_id === playerLineup.id;
+            const playerScore = isHome ? mg.home_score : mg.away_score;
+            const opponentScore = isHome ? mg.away_score : mg.home_score;
+
+            if (playerScore > opponentScore) {
+              wins++;
+            } else if (playerScore < opponentScore) {
+              losses++;
+            } else {
+              draws++;
+            }
           }
         }
       }

@@ -383,8 +383,8 @@ export const gameService = {
             game_id: gameId,
             home_lineup_id: game.lineups[home].id,
             away_lineup_id: game.lineups[away].id,
-            home_score: 0,
-            away_score: 0,
+            home_score: null,
+            away_score: null,
             created_at: new Date(baseTime + index * 1000)
           });
           index++;
