@@ -82,8 +82,8 @@ function MiniGameCard({
   const homeName = mg.home_lineup?.name || 'Хозяева';
   const awayName = mg.away_lineup?.name || 'Гости';
 
-  const homeScore = mg.home_score;
-  const awayScore = mg.away_score;
+  const homeScore = mg.home_score ?? 0;
+  const awayScore = mg.away_score ?? 0;
 
   const handleScoreChange = async (side: 'home' | 'away', operation: 'inc' | 'dec' | 'clear') => {
     if (!canEdit || updating) return;
@@ -93,13 +93,13 @@ function MiniGameCard({
     let newAway = awayScore;
 
     if (side === 'home') {
-      if (operation === 'inc') newHome = (homeScore ?? -1) + 1;
-      else if (operation === 'dec') newHome = Math.max(0, (homeScore ?? 1) - 1);
-      else newHome = null;
+      if (operation === 'inc') newHome = homeScore + 1;
+      else if (operation === 'dec') newHome = Math.max(0, homeScore - 1);
+      else newHome = 0;
     } else {
-      if (operation === 'inc') newAway = (awayScore ?? -1) + 1;
-      else if (operation === 'dec') newAway = Math.max(0, (awayScore ?? 1) - 1);
-      else newAway = null;
+      if (operation === 'inc') newAway = awayScore + 1;
+      else if (operation === 'dec') newAway = Math.max(0, awayScore - 1);
+      else newAway = 0;
     }
 
     try {
@@ -111,14 +111,8 @@ function MiniGameCard({
     }
   };
 
-  const isPlayed = homeScore !== null && awayScore !== null;
-
   return (
-    <div className={`p-3 bg-white dark:bg-zinc-900 border rounded-xl flex items-center justify-between transition-all duration-200 ${
-      isPlayed 
-        ? 'border-zinc-200 dark:border-zinc-800 shadow-sm' 
-        : 'border-dashed border-zinc-200 dark:border-zinc-850 opacity-90'
-    }`}>
+    <div className="p-3 bg-white dark:bg-zinc-900 border rounded-xl flex items-center justify-between transition-all duration-200 border-zinc-200 dark:border-zinc-800 shadow-sm">
       {/* Match Info & Home Team */}
       <div className="flex-1 flex flex-col min-w-0 pr-2">
         <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1">
@@ -139,7 +133,7 @@ function MiniGameCard({
                   -
                 </button>
                 <span className="w-6 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  {homeScore ?? '-'}
+                  {homeScore}
                 </span>
                 <button
                   disabled={updating}
@@ -150,8 +144,8 @@ function MiniGameCard({
                 </button>
               </div>
             ) : (
-              <span className={`text-sm font-bold shrink-0 ${isPlayed ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 dark:text-zinc-650'}`}>
-                {homeScore ?? '-'}
+              <span className="text-sm font-bold shrink-0 text-zinc-900 dark:text-zinc-100">
+                {homeScore}
               </span>
             )}
           </div>
@@ -170,7 +164,7 @@ function MiniGameCard({
                   -
                 </button>
                 <span className="w-6 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  {awayScore ?? '-'}
+                  {awayScore}
                 </span>
                 <button
                   disabled={updating}
@@ -181,8 +175,8 @@ function MiniGameCard({
                 </button>
               </div>
             ) : (
-              <span className={`text-sm font-bold shrink-0 ${isPlayed ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 dark:text-zinc-650'}`}>
-                {awayScore ?? '-'}
+              <span className="text-sm font-bold shrink-0 text-zinc-900 dark:text-zinc-100">
+                {awayScore}
               </span>
             )}
           </div>
@@ -190,13 +184,13 @@ function MiniGameCard({
       </div>
 
       {/* Clear/Reset score button for Admin */}
-      {canEdit && isPlayed && (
+      {canEdit && (homeScore !== 0 || awayScore !== 0) && (
         <button
           onClick={async () => {
-            if (confirm('Сбросить счет этого матча?')) {
+            if (confirm('Сбросить счет этого матча на 0-0?')) {
               setUpdating(true);
               try {
-                await onUpdateScore(mg.id, null, null);
+                await onUpdateScore(mg.id, 0, 0);
               } catch (e) {
                 console.error(e);
               } finally {

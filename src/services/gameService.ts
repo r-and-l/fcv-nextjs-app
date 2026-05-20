@@ -372,6 +372,8 @@ export const gameService = {
       }
 
       const matchesToCreate = [];
+      const baseTime = Date.now();
+      let index = 0;
       for (let circle = 0; circle < circles; circle++) {
         for (const pair of pairs) {
           // Чередуем хозяев и гостей для разнообразия
@@ -381,9 +383,11 @@ export const gameService = {
             game_id: gameId,
             home_lineup_id: game.lineups[home].id,
             away_lineup_id: game.lineups[away].id,
-            home_score: null,
-            away_score: null
+            home_score: 0,
+            away_score: 0,
+            created_at: new Date(baseTime + index * 1000)
           });
+          index++;
         }
       }
 
