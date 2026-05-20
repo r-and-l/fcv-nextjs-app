@@ -67,6 +67,12 @@ export const gameMessageBuilder = {
         where: { id: game.id },
         data: { telegram_message_id: BigInt(result.result.message_id) }
       });
+      // Закрепляем сообщение в группе
+      try {
+        await telegramApi.pinChatMessage(teamChatId, result.result.message_id);
+      } catch (err) {
+        console.error('[sendGameMessage] Failed to pin message in Telegram:', err);
+      }
     } else {
       console.error('[sendGameMessage] Telegram API Error:', result);
     }

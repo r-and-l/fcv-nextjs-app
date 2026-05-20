@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
+import { telegramApi } from '@/lib/telegramApi';
 import {
   addDaysToDateString,
   getMoscowDateString,
@@ -13,6 +14,10 @@ export const gameService = {
    */
   async createGame(teamId: string, date: Date, location?: string, description?: string, duration?: number) {
     try {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId }
+      });
+
       const game = await prisma.game.create({
         data: {
           team_id: teamId,
@@ -20,6 +25,8 @@ export const gameService = {
           location,
           description,
           ...(duration !== undefined ? { duration } : {}),
+          reminder_hours: team?.default_reminder_hours,
+          reminder_text: team?.default_reminder_text
         }
       });
 
@@ -211,7 +218,9 @@ export const gameService = {
                     date: gameDate,
                     location: schedule.location,
                     duration: schedule.duration,
-                    description: 'Автоматически созданная игра по расписанию'
+                    description: 'Автоматически созданная игра по расписанию',
+                    reminder_hours: schedule.team.default_reminder_hours,
+                    reminder_text: schedule.team.default_reminder_text
                   }
                 });
 
@@ -421,6 +430,59 @@ export const gameService = {
       });
     } catch (error: any) {
       throw new Error(`Prisma error: ${error.message}`);
+    }
+  },
+
+  /**
+   * Отправляет напоминания о предстоящих играх в Telegram
+   */
+  async sendUpcomingReminders() {
+    try {
+      const now = new Date();
+      
+      const games = await prisma.game.findMany({
+        where: {
+          reminder_sent: false,
+          reminder_hours: { not: null },
+          date: { gt: now }
+        },
+        include: {
+          team: true
+        }
+      });
+
+      let sentCount = 0;
+      for (const game of games) {
+        if (!game.reminder_hours || !game.team.telegram_chat_id) continue;
+
+        const reminderTimeMs = game.reminder_hours * 60 * 60 * 1000;
+        const timeUntilGameMs = game.date.getTime() - now.getTime();
+
+        if (timeUntilGameMs <= reminderTimeMs) {
+          try {
+            const text = game.reminder_text || 'Напоминание: скоро игра! Не забудьте записаться в приложении!';
+            
+            const botInfo = await telegramApi.getMe();
+            const botUsername = botInfo?.result?.username || 'fcv_app_bot';
+            const markup = gameMessageBuilder.getInlineKeyboard(game.id, botUsername);
+            
+            await telegramApi.sendMessage(game.team.telegram_chat_id, text, markup);
+
+            await prisma.game.update({
+              where: { id: game.id },
+              data: { reminder_sent: true }
+            });
+
+            sentCount++;
+          } catch (err) {
+            console.error(`[sendUpcomingReminders] Failed to send reminder for game ${game.id}:`, err);
+          }
+        }
+      }
+
+      return sentCount;
+    } catch (error: any) {
+      throw new Error(`Failed to send reminders: ${error.message}`);
     }
   }
 };

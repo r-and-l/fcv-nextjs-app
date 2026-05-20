@@ -28,6 +28,9 @@ model Team {
   name               String?
   created_at         DateTime @default(now())
 
+  default_reminder_hours Int?     @default(24)
+  default_reminder_text  String?  @default("Напоминание: скоро игра! Не забудьте записаться в приложении!")
+
   members            TeamMember[]
   games              Game[]
   schedules          TeamSchedule[]
@@ -78,6 +81,10 @@ model Game {
   duration            Int      @default(60)
   telegram_message_id BigInt?
   created_at          DateTime @default(now())
+
+  reminder_hours      Int?     @default(24)
+  reminder_text       String?  @default("Напоминание: скоро игра! Не забудьте записаться в приложении!")
+  reminder_sent       Boolean  @default(false)
 
   team          Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
   registrations GameRegistration[]

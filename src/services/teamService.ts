@@ -169,5 +169,20 @@ export const teamService = {
         role: 'MEMBER'
       }
     });
+  },
+
+  async updateTeamSettings(userId: number, teamId: string, settings: { default_reminder_hours?: number | null, default_reminder_text?: string | null }) {
+    const adminMember = await prisma.teamMember.findUnique({
+      where: { user_id_team_id: { user_id: BigInt(userId), team_id: teamId } }
+    });
+
+    if (!adminMember || adminMember.role !== 'ADMIN') {
+      throw new Error('Forbidden');
+    }
+
+    return await prisma.team.update({
+      where: { id: teamId },
+      data: settings
+    });
   }
 };

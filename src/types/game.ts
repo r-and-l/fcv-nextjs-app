@@ -32,6 +32,9 @@ export interface Game {
   date: string;
   location?: string | null;
   duration?: number | null;
+  reminder_hours?: number | null;
+  reminder_text?: string | null;
+  reminder_sent?: boolean;
   registrations?: GameRegistration[];
   lineups?: GameLineup[];
   mini_games?: MiniGame[];

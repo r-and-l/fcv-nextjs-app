@@ -41,6 +41,8 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
 
   const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'lineups'>('standings');
   const [generating, setGenerating] = useState(false);
+  const [localHours, setLocalHours] = useState<string | null>(null);
+  const [localText, setLocalText] = useState<string | null>(null);
 
   const now = useMemo(() => new Date(), []);
   const gameEndTime = useMemo(() => {
@@ -106,6 +108,8 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
   const canEditMatches = isTournament 
     ? (isFinished ? isAdmin : isMember) 
     : canEditLineups;
+  const reminderHours = localHours !== null ? localHours : (game?.reminder_hours === null ? 'disabled' : String(game?.reminder_hours ?? '24'));
+  const reminderText = localText !== null ? localText : (game?.reminder_text || '');
 
   const handleGenerate = async () => {
     if (generating) return;
@@ -126,7 +130,6 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
         subtitle={formatInMoscow(game.date, { day: 'numeric', month: 'long' })}
         action={<BackButton onClick={() => router.back()} />}
       />
-
       {isAdmin && !isFinished && (
         <div className="mb-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col gap-2 shadow-sm">
           <div className="flex justify-between items-center">
@@ -164,6 +167,75 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 italic">
               Изменение длительности игры пересчитает количество доступных кругов и матчей.
             </p>
+          )}
+
+          <div className="flex justify-between items-center mt-2 border-t border-zinc-100 dark:border-zinc-800/80 pt-2">
+            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">🔔 Напоминание в чат:</span>
+            <select
+              value={reminderHours}
+              onChange={async (e) => {
+                const val = e.target.value;
+                setLocalHours(val);
+                const hrs = val === 'disabled' ? null : Number(val);
+                try {
+                  const res = await fetch(`/api/games/${game.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData || '' },
+                    body: JSON.stringify({ reminder_hours: hrs }),
+                  });
+                  if (res.ok) {
+                    mutateGame();
+                  } else {
+                    alert('Не удалось обновить напоминание');
+                  }
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+              className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-bold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="disabled">Выключено</option>
+              <option value="1">За 1 час</option>
+              <option value="2">За 2 часа</option>
+              <option value="3">За 3 часа</option>
+              <option value="4">За 4 часа</option>
+              <option value="6">За 6 часов</option>
+              <option value="12">За 12 часов</option>
+              <option value="24">За 24 часа</option>
+              <option value="48">За 48 часов</option>
+            </select>
+          </div>
+
+          {reminderHours !== 'disabled' && (
+            <div className="flex flex-col gap-1 mt-1">
+              <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500">Текст напоминания (кликните в сторону для сохранения):</span>
+              <input
+                type="text"
+                value={reminderText}
+                onChange={(e) => setLocalText(e.target.value)}
+                onBlur={async () => {
+                  try {
+                    const res = await fetch(`/api/games/${game.id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData || '' },
+                      body: JSON.stringify({ reminder_text: reminderText }),
+                    });
+                    if (res.ok) {
+                      mutateGame();
+                    }
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 text-xs px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full"
+                placeholder="Текст напоминания..."
+              />
+            </div>
           )}
         </div>
       )}

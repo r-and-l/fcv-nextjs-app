@@ -12,6 +12,7 @@ import {
   ScheduleList,
   AddScheduleForm,
   ManualGameForm,
+  ReminderSettingsForm,
 } from '@/components';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useSchedules } from '@/hooks/useSchedules';
@@ -37,9 +38,10 @@ function AdminDashboard({ teamId }: { teamId: string }) {
         subtitle={team.name}
         action={<BackButton onClick={() => router.push(`/team/${teamId}`)} label="Готово" />}
       />
+      <ReminderSettingsForm team={team} initData={initData || ''} />
       <ScheduleList schedules={schedules} isLoading={schedLoading} onDelete={deleteSchedule} />
       <AddScheduleForm onAdd={addSchedule} />
-      <ManualGameForm teamId={teamId} initData={initData} />
+      <ManualGameForm teamId={teamId} initData={initData || ''} />
     </PageLayout>
   );
 }

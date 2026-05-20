@@ -27,9 +27,11 @@ export const GET = withTelegramAuth(async (req, user, context: any) => {
 export const PATCH = withTelegramAuth(async (req, user, context: any) => {
   const params = await context.params;
   const gameId = params.id;
-  const { duration } = await req.json();
+  const { duration, reminder_hours, reminder_text } = await req.json();
 
-  if (duration === undefined) throw new Error('Missing duration');
+  if (duration === undefined && reminder_hours === undefined && reminder_text === undefined) {
+    throw new Error('Missing fields to update');
+  }
 
   const game = await prisma.game.findUnique({
     where: { id: gameId }
@@ -47,18 +49,22 @@ export const PATCH = withTelegramAuth(async (req, user, context: any) => {
   });
 
   if (!member || member.role !== 'ADMIN') {
-    throw new Error('Access denied: only ADMIN can modify game duration');
+    throw new Error('Access denied: only ADMIN can modify game settings');
   }
 
   const now = new Date();
   const gameEndTime = new Date(game.date.getTime() + (game.duration || 60) * 60 * 1000);
   if (now > gameEndTime) {
-    throw new Error('Access denied: cannot change duration of a finished game');
+    throw new Error('Access denied: cannot change settings of a finished game');
   }
 
   const updatedGame = await prisma.game.update({
     where: { id: gameId },
-    data: { duration: Number(duration) }
+    data: {
+      ...(duration !== undefined ? { duration: Number(duration) } : {}),
+      ...(reminder_hours !== undefined ? { reminder_hours: reminder_hours === null ? null : Number(reminder_hours) } : {}),
+      ...(reminder_text !== undefined ? { reminder_text } : {})
+    }
   });
 
   return { game: updatedGame };
