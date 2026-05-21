@@ -33,10 +33,12 @@
   --color-card-bg: var(--card-bg);
   --color-card-border: var(--card-border);
   --color-input-bg: var(--input-bg);
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-custom-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-custom-heading), sans-serif;
 }
 
 body {
+  font-family: var(--font-sans);
   background: var(--background);
   color: var(--foreground);
   background-image: 
@@ -44,6 +46,10 @@ body {
     radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
   background-attachment: fixed;
   min-height: 100-vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
 /* Glassmorphism helpers */

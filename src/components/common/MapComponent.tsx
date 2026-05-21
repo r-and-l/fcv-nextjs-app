@@ -81,6 +81,7 @@ export default function MapComponent({
       center: [defaultLat, defaultLng],
       zoom: zoomLevel,
       zoomControl: true,
+      attributionControl: false,
     });
 
     mapRef.current = map;
@@ -91,9 +92,13 @@ export default function MapComponent({
       : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     const tileLayer = L.tileLayer(tileUrl, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 19,
     }).addTo(map);
+
+    // Add custom plain-text attribution control without external hyperlinks
+    L.control.attribution({
+      prefix: false
+    }).addAttribution('© OpenStreetMap contributors, © CARTO').addTo(map);
 
     tileLayerRef.current = tileLayer;
 
