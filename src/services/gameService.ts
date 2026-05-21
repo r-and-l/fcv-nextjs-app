@@ -206,7 +206,7 @@ export const gameService = {
 
       for (const schedule of schedules) {
         // Создаём игры на 14 дней вперёд (без ограничения по часам)
-        for (let i = 1; i <= 14; i++) {
+        for (let i = 0; i <= 14; i++) {
           const targetDateStr = addDaysToDateString(todayMoscow, i);
 
           if (getMoscowWeekday(parseMoscowDateTime(targetDateStr, '12:00')) === schedule.day_of_week) {
@@ -245,7 +245,7 @@ export const gameService = {
               await this.createDefaultLineup(newGame.id);
 
               // Отправляем анонс в Telegram только когда до игры осталось <= game_announce_hours
-              const announceThreshold = (schedule.team as any).game_announce_hours ?? 72;
+              const announceThreshold = schedule.team.game_announce_hours ?? 72;
               if (schedule.team.telegram_chat_id && hoursUntilGame <= announceThreshold) {
                 await gameMessageBuilder.sendGameMessage(schedule.team.telegram_chat_id, newGame);
               }
@@ -253,7 +253,7 @@ export const gameService = {
               createdCount++;
             } else {
               // Игра уже есть в БД — проверяем, нужно ли отправить анонс (если ещё не отправлен)
-              const announceThreshold = (schedule.team as any).game_announce_hours ?? 72;
+              const announceThreshold = schedule.team.game_announce_hours ?? 72;
               if (
                 schedule.team.telegram_chat_id &&
                 !existingGame.telegram_message_id &&
