@@ -17,6 +17,32 @@ export async function POST(req: NextRequest) {
         // Сохраняем пользователя в БД через сервис
         await userService.upsertUser(tgUser);
         console.log(`[Webhook] User ${tgUser.id} registered via /start`);
+
+        // Отправляем приветственное сообщение и инструкции в личку
+        const botInfo = await import('@/lib/telegramApi').then(m => m.telegramApi.getMe());
+        const botUsername = botInfo?.result?.username || 'fcv_app_bot';
+
+        const welcomeText = `👋 <b>Привет! Я бот для управления футбольными сборами.</b>\n\n` +
+          `Я помогу вашей команде организовывать игры, собирать составы, вести статистику и турнирную таблицу прямо в Telegram!\n\n` +
+          `⚙️ <b>Как начать работу:</b>\n` +
+          `1. Добавьте меня в <b>группу вашей команды</b>.\n` +
+          `2. <b>Дайте мне права администратора</b> в этой группе (особенно права на <b>отправку сообщений</b> и <b>закрепление сообщений</b>). Это необходимо, чтобы я мог автоматически закреплять информацию о ближайшей игре и обновлять составы.\n` +
+          `3. После добавления в группу я автоматически зарегистрирую команду и пришлю ссылку для входа в веб-приложение.\n\n` +
+          `<i>Удачных сборов!</i> ⚽`;
+
+        const markup = {
+          inline_keyboard: [
+            [
+              {
+                text: '➕ Добавить бота в группу',
+                url: `https://t.me/${botUsername}?startgroup=true`
+              }
+            ]
+          ]
+        };
+
+        const { telegramApi } = await import('@/lib/telegramApi');
+        await telegramApi.sendMessage(update.message.chat.id, welcomeText, markup);
       }
     }
 
