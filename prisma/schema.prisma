@@ -30,6 +30,7 @@ model Team {
 
   default_reminder_hours Int?     @default(24)
   default_reminder_text  String?  @default("Напоминание: скоро игра! Не забудьте записаться в приложении!")
+  game_announce_hours    Int?     @default(72)
 
   members            TeamMember[]
   games              Game[]

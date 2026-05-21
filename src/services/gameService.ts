@@ -205,50 +205,62 @@ export const gameService = {
       let createdCount = 0;
 
       for (const schedule of schedules) {
-        // Проверяем следующие 7 дней (календарь — Москва)
-        for (let i = 1; i <= 7; i++) {
+        // Создаём игры на 14 дней вперёд (без ограничения по часам)
+        for (let i = 1; i <= 14; i++) {
           const targetDateStr = addDaysToDateString(todayMoscow, i);
 
           if (getMoscowWeekday(parseMoscowDateTime(targetDateStr, '12:00')) === schedule.day_of_week) {
             const gameDate = parseMoscowDateTime(targetDateStr, schedule.time);
-
-            // Создаем игру только если до нее осталось менее 72 часов (ровно 3 суток)
             const hoursUntilGame = (gameDate.getTime() - today.getTime()) / (1000 * 60 * 60);
-            
-            if (hoursUntilGame <= 72 && hoursUntilGame > 0) {
-              // Проверяем, существует ли уже игра на эту дату (с погрешностью +- 1 час)
-              const existingGame = await prisma.game.findFirst({
-                where: {
+
+            // Пропускаем игры в прошлом
+            if (hoursUntilGame <= 0) continue;
+
+            // Проверяем, существует ли уже игра на эту дату (с погрешностью +- 1 час)
+            const existingGame = await prisma.game.findFirst({
+              where: {
+                team_id: schedule.team_id,
+                date: {
+                  gte: new Date(gameDate.getTime() - 1000 * 60 * 60),
+                  lte: new Date(gameDate.getTime() + 1000 * 60 * 60),
+                }
+              }
+            });
+
+            if (!existingGame) {
+              // Создаём игру в БД сразу (независимо от времени до неё)
+              const newGame = await prisma.game.create({
+                data: {
                   team_id: schedule.team_id,
-                  date: {
-                    gte: new Date(gameDate.getTime() - 1000 * 60 * 60),
-                    lte: new Date(gameDate.getTime() + 1000 * 60 * 60),
-                  }
+                  date: gameDate,
+                  location: schedule.location,
+                  duration: schedule.duration,
+                  description: 'Автоматически созданная игра по расписанию',
+                  reminder_hours: schedule.team.default_reminder_hours,
+                  reminder_text: schedule.team.default_reminder_text
                 }
               });
 
-              if (!existingGame) {
-                const newGame = await prisma.game.create({
-                  data: {
-                    team_id: schedule.team_id,
-                    date: gameDate,
-                    location: schedule.location,
-                    duration: schedule.duration,
-                    description: 'Автоматически созданная игра по расписанию',
-                    reminder_hours: schedule.team.default_reminder_hours,
-                    reminder_text: schedule.team.default_reminder_text
-                  }
-                });
+              // Создаем 2 состава
+              await this.createDefaultLineup(newGame.id);
 
-                // Создаем 2 состава
-                await this.createDefaultLineup(newGame.id);
+              // Отправляем анонс в Telegram только когда до игры осталось <= game_announce_hours
+              const announceThreshold = (schedule.team as any).game_announce_hours ?? 72;
+              if (schedule.team.telegram_chat_id && hoursUntilGame <= announceThreshold) {
+                await gameMessageBuilder.sendGameMessage(schedule.team.telegram_chat_id, newGame);
+              }
 
-                // Отправляем анонс в Telegram группу
-                if (schedule.team.telegram_chat_id) {
-                  await gameMessageBuilder.sendGameMessage(schedule.team.telegram_chat_id, newGame);
-                }
-
-                createdCount++;
+              createdCount++;
+            } else {
+              // Игра уже есть в БД — проверяем, нужно ли отправить анонс (если ещё не отправлен)
+              const announceThreshold = (schedule.team as any).game_announce_hours ?? 72;
+              if (
+                schedule.team.telegram_chat_id &&
+                !existingGame.telegram_message_id &&
+                hoursUntilGame <= announceThreshold &&
+                hoursUntilGame > 0
+              ) {
+                await gameMessageBuilder.sendGameMessage(schedule.team.telegram_chat_id, existingGame);
               }
             }
           }

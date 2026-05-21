@@ -171,7 +171,7 @@ export const teamService = {
     });
   },
 
-  async updateTeamSettings(userId: number, teamId: string, settings: { default_reminder_hours?: number | null, default_reminder_text?: string | null }) {
+  async updateTeamSettings(userId: number, teamId: string, settings: { default_reminder_hours?: number | null, default_reminder_text?: string | null, game_announce_hours?: number | null }) {
     const adminMember = await prisma.teamMember.findUnique({
       where: { user_id_team_id: { user_id: BigInt(userId), team_id: teamId } }
     });
