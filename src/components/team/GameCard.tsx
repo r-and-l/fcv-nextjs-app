@@ -35,6 +35,31 @@ export function GameCard({
   const isFinished = now > gameEndTime;
   const canEditScore = !isFinished || isAdmin;
 
+  const myAssignedLineup = useMemo(() => {
+    if (!game.lineups || !userId) return null;
+    return game.lineups.find((l) =>
+      l.players?.some((p) => String(p.user_id) === String(userId))
+    );
+  }, [game.lineups, userId]);
+
+  const lineupBadgeColors = useMemo(() => {
+    if (!myAssignedLineup) return null;
+    const name = myAssignedLineup.name.toLowerCase();
+    if (name.includes('красн') || name.includes('red')) {
+      return 'bg-rose-500/10 text-rose-700 dark:text-rose-450 border-rose-500/20 dark:border-rose-500/15';
+    }
+    if (name.includes('зелен') || name.includes('зелён') || name.includes('green')) {
+      return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-450 border-emerald-500/20 dark:border-emerald-500/15';
+    }
+    if (name.includes('син') || name.includes('blue')) {
+      return 'bg-blue-500/10 text-blue-700 dark:text-blue-455 border-blue-500/20 dark:border-blue-500/15';
+    }
+    if (name.includes('желт') || name.includes('жёлт') || name.includes('yellow')) {
+      return 'bg-amber-500/10 text-amber-700 dark:text-amber-455 border-amber-500/20 dark:border-amber-500/15';
+    }
+    return 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 dark:border-indigo-500/15';
+  }, [myAssignedLineup]);
+
   const isTournament = (game.lineups?.length || 0) >= 3;
   const tournamentSummary = useMemo(() => {
     if (!isTournament) return null;
@@ -111,6 +136,15 @@ export function GameCard({
             />
           </div>
         )
+      )}
+
+      {myAssignedLineup && lineupBadgeColors && (
+        <div className={`mb-3.5 px-3 py-2 border rounded-xl flex items-center justify-between text-xs font-semibold ${lineupBadgeColors}`}>
+          <span className="flex items-center gap-1">🎮 Вы в составе:</span>
+          <span className="px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+            {myAssignedLineup.name}
+          </span>
+        </div>
       )}
 
       <RegistrationButtons

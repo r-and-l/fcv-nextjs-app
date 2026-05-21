@@ -91,7 +91,15 @@ export const gameService = {
           registrations: {
             include: { user: true }
           },
-          lineups: true,
+          lineups: {
+            include: {
+              players: {
+                include: {
+                  user: true
+                }
+              }
+            }
+          },
           mini_games: {
             include: {
               home_lineup: true,
@@ -117,7 +125,15 @@ export const gameService = {
         },
         orderBy: { date: 'desc' },
         include: {
-          lineups: true,
+          lineups: {
+            include: {
+              players: {
+                include: {
+                  user: true
+                }
+              }
+            }
+          },
           registrations: {
             include: { user: true }
           },

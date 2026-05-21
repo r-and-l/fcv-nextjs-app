@@ -29,7 +29,7 @@ export const POST = withTelegramAuth(async (req, user, context: any) => {
   return { lineup };
 });
 
-export const DELETE = withTelegramAuth(async (req, user, _context) => {
+export const DELETE = withTelegramAuth(async (req, user) => {
   const { searchParams } = new URL(req.url);
   const lineupId = searchParams.get('lineupId');
   if (!lineupId) throw new Error('Missing lineupId');

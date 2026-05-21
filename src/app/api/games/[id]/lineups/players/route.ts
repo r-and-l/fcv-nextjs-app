@@ -12,7 +12,7 @@ export const POST = withTelegramAuth(async (req, user, context: any) => {
   return { success: true };
 });
 
-export const DELETE = withTelegramAuth(async (req, _user, _context) => {
+export const DELETE = withTelegramAuth(async (req) => {
   const { searchParams } = new URL(req.url);
   const lineupId = searchParams.get('lineupId');
   const userId = searchParams.get('userId');

@@ -1,6 +1,7 @@
 export interface GameUser {
   first_name?: string | null;
   username?: string | null;
+  position?: string | null;
 }
 
 export interface GameRegistration {

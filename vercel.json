@@ -1,12 +1,2 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/generate-games",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/send-reminders",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}
+{}
+
