@@ -16,13 +16,14 @@ import {
   MiniGamesPanel,
 } from '@/components';
 import { formatInMoscow } from '@/lib/timezone';
-import { useTeamData, useGameLineups, useGame, useMiniGames } from '@/hooks/useTeamData';
+import { useTeamData, useGameLineups, useGame, useMiniGames, useTeamMembers } from '@/hooks/useTeamData';
 
 function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }) {
   const router = useRouter();
   const { isReady, initData } = useTelegram();
   const { team, isLoading: teamLoading } = useTeamData(teamId);
   const { game, isLoading: gameLoading, mutate: mutateGame } = useGame(gameId);
+  const { members } = useTeamMembers(teamId);
   const {
     lineups,
     isLoading: lineupsLoading,
@@ -59,6 +60,56 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
     });
     return going.filter((r) => !assignedUserIds.has(Number(r.user_id)));
   }, [game, lineups]);
+
+  const unregisteredMembers = useMemo(() => {
+    if (!members || !game) return [];
+    const goingUserIds = new Set(
+      game.registrations
+        ?.filter((r) => r.status === 'GOING')
+        .map((r) => Number(r.user_id)) || []
+    );
+    return members.filter((m: any) => !goingUserIds.has(Number(m.user_id)));
+  }, [members, game]);
+
+  const handleRegisterMember = async (userId: number) => {
+    if (!initData) return;
+    try {
+      const res = await fetch(`/api/games/${gameId}/register/admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
+        body: JSON.stringify({ userId, status: 'GOING' })
+      });
+      if (res.ok) {
+        mutateGame();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Не удалось записать игрока');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка при записи игрока');
+    }
+  };
+
+  const handleCreateLegioneer = async (name: string) => {
+    if (!initData) return;
+    try {
+      const res = await fetch(`/api/games/${gameId}/legioneers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
+        body: JSON.stringify({ name })
+      });
+      if (res.ok) {
+        mutateGame();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Не удалось создать легионера');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка при создании легионера');
+    }
+  };
 
   const isTournament = lineups.length >= 3;
 
@@ -331,6 +382,10 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
                   players={availablePlayers}
                   lineups={lineups}
                   onAssign={assignPlayer}
+                  isAdmin={isAdmin}
+                  unregisteredMembers={unregisteredMembers}
+                  onRegisterMember={handleRegisterMember}
+                  onAddLegioneer={handleCreateLegioneer}
                 />
               )}
 
@@ -359,6 +414,10 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
               players={availablePlayers}
               lineups={lineups}
               onAssign={assignPlayer}
+              isAdmin={isAdmin}
+              unregisteredMembers={unregisteredMembers}
+              onRegisterMember={handleRegisterMember}
+              onAddLegioneer={handleCreateLegioneer}
             />
           )}
 
