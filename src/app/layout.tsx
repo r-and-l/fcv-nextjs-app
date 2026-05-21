@@ -4,13 +4,13 @@ import "./globals.css";
 import Script from "next/script";
 
 const headingFont = localFont({
-  src: "./fonts/ClimateCrisis-Regular-VariableFont_YEAR.ttf",
+  src: "./fonts/Tektur-VariableFont_wdth,wght.ttf",
   variable: "--font-custom-heading",
   display: "swap",
 });
 
 const sansFont = localFont({
-  src: "./fonts/ScienceGothic-VariableFont_CTRS,slnt,wdth,wght.ttf",
+  src: "./fonts/WDXLLubrifontTC-Regular.ttf",
   variable: "--font-custom-sans",
   display: "swap",
 });
