@@ -18,31 +18,57 @@ export async function POST(req: NextRequest) {
         await userService.upsertUser(tgUser);
         console.log(`[Webhook] User ${tgUser.id} registered via /start`);
 
-        // Отправляем приветственное сообщение и инструкции в личку
-        const botInfo = await import('@/lib/telegramApi').then(m => m.telegramApi.getMe());
-        const botUsername = botInfo?.result?.username || 'fcv_app_bot';
-
-        const welcomeText = `👋 <b>Привет! Я бот для управления футбольными сборами.</b>\n\n` +
-          `Я помогу вашей команде организовывать игры, собирать составы, вести статистику и турнирную таблицу прямо в Telegram!\n\n` +
-          `⚙️ <b>Как начать работу:</b>\n` +
-          `1. Добавьте меня в <b>группу вашей команды</b>.\n` +
-          `2. <b>Дайте мне права администратора</b> в этой группе (особенно права на <b>отправку сообщений</b> и <b>закрепление сообщений</b>). Это необходимо, чтобы я мог автоматически закреплять информацию о ближайшей игре и обновлять составы.\n` +
-          `3. После добавления в группу я автоматически зарегистрирую команду и пришлю ссылку для входа в веб-приложение.\n\n` +
-          `<i>Удачных сборов!</i> ⚽`;
-
-        const markup = {
-          inline_keyboard: [
-            [
-              {
-                text: '➕ Добавить бота в группу',
-                url: `https://t.me/${botUsername}?startgroup=true`
-              }
-            ]
-          ]
-        };
-
         const { telegramApi } = await import('@/lib/telegramApi');
-        await telegramApi.sendMessage(update.message.chat.id, welcomeText, markup);
+        const botInfo = await telegramApi.getMe();
+        const botUsername = botInfo?.result?.username || 'fcv_app_bot';
+        const shortName = process.env.NEXT_PUBLIC_MINI_APP_SHORT_NAME || 'app';
+
+        // Проверяем, есть ли у пользователя команды
+        const userTeams = await teamService.getMyTeams(tgUser.id);
+
+        if (userTeams.length > 0) {
+          // У пользователя уже есть команда(ы) — показываем их со ссылками
+          const teamLines = userTeams.map((t: any, i: number) => {
+            return `${i + 1}. <b>${t.name || 'Без названия'}</b>`;
+          }).join('\n');
+
+          const welcomeText = `👋 <b>С возвращением!</b>\n\n` +
+            `Вы уже состоите в ${userTeams.length === 1 ? 'команде' : 'командах'}:\n${teamLines}\n\n` +
+            `Нажмите кнопку ниже, чтобы открыть приложение.\n` +
+            `Или добавьте меня в другую группу, чтобы создать новую команду.`;
+
+          // Кнопки: открыть приложение (каждую команду) + добавить в группу
+          const teamButtons = userTeams.map((t: any) => ([{
+            text: `⚽ ${t.name || 'Команда'}`,
+            url: `https://t.me/${botUsername}/${shortName}?startapp=${t.id}`
+          }]));
+
+          const markup = {
+            inline_keyboard: [
+              ...teamButtons,
+              [{ text: '➕ Добавить в другую группу', url: `https://t.me/${botUsername}?startgroup=true` }]
+            ]
+          };
+
+          await telegramApi.sendMessage(update.message.chat.id, welcomeText, markup);
+        } else {
+          // Новый пользователь — показываем инструкции
+          const welcomeText = `👋 <b>Привет! Я бот для управления футбольными сборами.</b>\n\n` +
+            `Я помогу вашей команде организовывать игры, собирать составы, вести статистику и турнирную таблицу прямо в Telegram!\n\n` +
+            `⚙️ <b>Как начать работу:</b>\n` +
+            `1. Добавьте меня в <b>группу вашей команды</b>.\n` +
+            `2. <b>Назначьте меня администратором</b> группы — это нужно для отправки и закрепления сообщений об играх.\n` +
+            `3. После добавления я автоматически создам команду и пришлю ссылку на приложение.\n\n` +
+            `<i>Удачных сборов!</i> ⚽`;
+
+          const markup = {
+            inline_keyboard: [
+              [{ text: '➕ Добавить бота в группу', url: `https://t.me/${botUsername}?startgroup=true` }]
+            ]
+          };
+
+          await telegramApi.sendMessage(update.message.chat.id, welcomeText, markup);
+        }
       }
     }
 
@@ -68,20 +94,23 @@ export async function POST(req: NextRequest) {
           console.log(`[Webhook] User ${from.id} assigned as ADMIN to Team ${team.id}`);
         }
 
-        // 4. Отправляем приветственное сообщение в группу с кнопкой
-        const botInfo = await import('@/lib/telegramApi').then(m => m.telegramApi.getMe());
+        // 4. Отправляем приветственное сообщение в группу с кнопкой — ссылка ведет сразу на страницу команды
+        const { telegramApi } = await import('@/lib/telegramApi');
+        const botInfo = await telegramApi.getMe();
         const botUsername = botInfo?.result?.username || 'fcv_app_bot';
         const shortName = process.env.NEXT_PUBLIC_MINI_APP_SHORT_NAME || 'app';
         const appUrl = `https://t.me/${botUsername}/${shortName}?startapp=${team.id}`;
 
-        const text = `🎉 <b>Привет! Я бот для управления футбольными сборами.</b>\n\nПрофиль команды для этого чата успешно создан!\n\nНажмите на кнопку ниже, чтобы открыть приложение и присоединиться к составу команды.`;
+        const text = `🎉 <b>Привет! Я бот для управления футбольными сборами.</b>\n\n` +
+          `Команда «<b>${team.name}</b>» успешно создана!\n\n` +
+          `Нажмите кнопку ниже, чтобы открыть приложение и перейти на страницу команды.`;
         const markup = {
           inline_keyboard: [
-            [{ text: '⚽ Присоединиться к команде', url: appUrl }]
+            [{ text: '⚽ Открыть команду', url: appUrl }]
           ]
         };
 
-        await import('@/lib/telegramApi').then(m => m.telegramApi.sendMessage(chat.id, text, markup));
+        await telegramApi.sendMessage(chat.id, text, markup);
 
         console.log(`[Webhook] Team created/updated for chat ${chat.id}: ${team.name} (Team UUID: ${team.id})`);
       }

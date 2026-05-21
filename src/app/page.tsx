@@ -31,8 +31,16 @@ function Dashboard() {
             })
             .catch(console.error);
         } else {
+          // startParam — это ID команды, join и сразу редирект
           registerUser().catch(() => {});
-          joinTeam(startParam).catch(() => {});
+          joinTeam(startParam)
+            .then(() => {
+              router.replace(`/team/${startParam}`);
+            })
+            .catch(() => {
+              // Даже если join не сработал (уже в команде), все равно переходим
+              router.replace(`/team/${startParam}`);
+            });
         }
       } else if (teams && !isLoading) {
         const noredirect = searchParams.get('noredirect');
