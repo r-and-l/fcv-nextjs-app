@@ -14,12 +14,12 @@ export function useSchedules(teamId: string) {
 
   const { data, error, isLoading, mutate } = useSWR(initData && teamId ? `/api/teams/schedule?teamId=${teamId}` : null, fetcher);
 
-  const addSchedule = async (dayOfWeek: number, time: string, location: string, duration?: number) => {
+  const addSchedule = async (dayOfWeek: number, time: string, location: string, duration?: number, latitude?: number, longitude?: number) => {
     if (!initData) return;
     const res = await fetch('/api/teams/schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, teamId, dayOfWeek, time, location, duration })
+      body: JSON.stringify({ initData, teamId, dayOfWeek, time, location, duration, latitude, longitude })
     });
     if (res.ok) mutate();
   };

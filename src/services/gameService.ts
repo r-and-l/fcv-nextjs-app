@@ -12,7 +12,7 @@ export const gameService = {
   /**
    * Создает новую игру для команды
    */
-  async createGame(teamId: string, date: Date, location?: string, description?: string, duration?: number) {
+  async createGame(teamId: string, date: Date, location?: string, description?: string, duration?: number, latitude?: number, longitude?: number) {
     try {
       const team = await prisma.team.findUnique({
         where: { id: teamId }
@@ -26,7 +26,9 @@ export const gameService = {
           description,
           ...(duration !== undefined ? { duration } : {}),
           reminder_hours: team?.default_reminder_hours,
-          reminder_text: team?.default_reminder_text
+          reminder_text: team?.default_reminder_text,
+          latitude,
+          longitude
         }
       });
 
@@ -237,7 +239,9 @@ export const gameService = {
                   duration: schedule.duration,
                   description: 'Автоматически созданная игра по расписанию',
                   reminder_hours: schedule.team.default_reminder_hours,
-                  reminder_text: schedule.team.default_reminder_text
+                  reminder_text: schedule.team.default_reminder_text,
+                  latitude: schedule.latitude,
+                  longitude: schedule.longitude
                 }
               });
 

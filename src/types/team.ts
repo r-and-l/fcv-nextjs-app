@@ -25,5 +25,7 @@ export interface TeamSchedule {
   day_of_week: number;
   time: string;
   location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   created_at?: string;
 }

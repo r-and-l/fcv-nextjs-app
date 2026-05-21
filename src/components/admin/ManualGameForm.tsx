@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select, Button } from '@/components/ui/form';
+import { MapModal } from '@/components/common/MapModal';
 
 interface ManualGameFormProps {
   teamId: string;
@@ -15,6 +16,9 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
   const [location, setLocation] = useState('');
   const [duration, setDuration] = useState('60');
   const [description, setDescription] = useState('');
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -33,6 +37,8 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
           location,
           description,
           duration: Number(duration),
+          latitude,
+          longitude,
         }),
       });
 
@@ -42,6 +48,8 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
         setLocation('');
         setDescription('');
         setDuration('60');
+        setLatitude(undefined);
+        setLongitude(undefined);
       } else {
         alert('Ошибка при создании игры');
       }
@@ -65,11 +73,36 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Локация">
-            <Input
-              placeholder="Где играем?"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
+            <div className="flex gap-2 items-center">
+              <Input
+                placeholder="Где играем?"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setIsMapOpen(true)}
+                className="px-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-sm transition-all active:scale-[0.98] border border-zinc-200/80 dark:border-zinc-700 flex items-center justify-center h-10 w-12 cursor-pointer"
+                title="Указать на карте"
+              >
+                🗺️
+              </button>
+            </div>
+            {latitude !== undefined && longitude !== undefined && (
+              <div className="mt-1 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-450 px-2 py-1 rounded-lg text-[10px] font-medium">
+                <span>📍 Координаты установлены</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLatitude(undefined);
+                    setLongitude(undefined);
+                  }}
+                  className="text-emerald-600 dark:text-emerald-450 hover:text-red-500 font-bold ml-2 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </Field>
           <Field label="Длительность">
             <Select value={duration} onChange={(e) => setDuration(e.target.value)}>
@@ -97,6 +130,18 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
           Игра создастся сразу, в группу отправится сообщение.
         </p>
       </form>
+      <MapModal
+        isOpen={isMapOpen}
+        onClose={() => setIsMapOpen(false)}
+        mode="select"
+        initialLat={latitude}
+        initialLng={longitude}
+        onSave={(lat, lng) => {
+          setLatitude(lat);
+          setLongitude(lng);
+        }}
+        title="Выбрать место игры"
+      />
     </Card>
   );
 }

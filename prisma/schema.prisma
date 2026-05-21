@@ -45,6 +45,8 @@ model TeamSchedule {
   day_of_week Int      // 0 (Воскресенье) - 6 (Суббота)
   time        String   // "HH:mm"
   location    String?
+  latitude    Float?
+  longitude   Float?
   duration    Int      @default(60)
   created_at  DateTime @default(now())
 
@@ -78,6 +80,8 @@ model Game {
   team_id             String
   date                DateTime
   location            String?
+  latitude            Float?
+  longitude           Float?
   description         String?
   duration            Int      @default(60)
   telegram_message_id BigInt?

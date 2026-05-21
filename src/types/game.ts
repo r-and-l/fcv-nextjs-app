@@ -32,6 +32,8 @@ export interface Game {
   id: string;
   date: string;
   location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   duration?: number | null;
   reminder_hours?: number | null;
   reminder_text?: string | null;

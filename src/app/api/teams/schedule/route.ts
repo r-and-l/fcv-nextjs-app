@@ -11,14 +11,16 @@ export const GET = withTelegramAuth(async (req) => {
 });
 
 export const POST = withTelegramAuth(async (req, user) => {
-  const { teamId, dayOfWeek, time, location, duration } = await req.json();
+  const { teamId, dayOfWeek, time, location, duration, latitude, longitude } = await req.json();
   const schedule = await teamService.createSchedule(
     user.id,
     teamId,
     Number(dayOfWeek),
     time,
     location,
-    duration ? Number(duration) : undefined
+    duration ? Number(duration) : undefined,
+    latitude !== undefined ? Number(latitude) : undefined,
+    longitude !== undefined ? Number(longitude) : undefined
   );
   
   // Автоматически генерируем игры по новому расписанию

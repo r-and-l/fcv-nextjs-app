@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Game } from '@/types';
 import { isToday, formatGameDate, formatGameTime } from '@/lib/dates';
 import { getGoingCount, getNotGoingCount, getMyRegistration, hasTwoLineups } from '@/lib/game';
 import { GameScorePanel } from '@/components/lineups';
+import { MapModal } from '@/components/common/MapModal';
 
 interface GameCardProps {
   game: Game;
@@ -29,6 +30,9 @@ export function GameCard({
   const router = useRouter();
   const today = isToday(game.date);
   const myReg = getMyRegistration(game, userId);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+
+  const hasCoordinates = typeof game.latitude === 'number' && typeof game.longitude === 'number';
 
   const now = new Date();
   const gameEndTime = new Date(new Date(game.date).getTime() + (game.duration || 60) * 60 * 1000);
@@ -117,6 +121,7 @@ export function GameCard({
         isToday={today}
         isAdmin={isAdmin}
         onDelete={() => onDelete(game.id)}
+        onViewMap={hasCoordinates ? () => setIsMapOpen(true) : undefined}
       />
 
       {isTournament ? (
@@ -165,6 +170,17 @@ export function GameCard({
         <span className="flex items-center gap-1">🟢 Идут: <strong className="text-zinc-800 dark:text-zinc-200">{getGoingCount(game)}</strong></span>
         <span className="flex items-center gap-1">🔴 Не идут: <strong className="text-zinc-800 dark:text-zinc-200">{getNotGoingCount(game)}</strong></span>
       </div>
+
+      {hasCoordinates && (
+        <MapModal
+          isOpen={isMapOpen}
+          onClose={() => setIsMapOpen(false)}
+          mode="view"
+          initialLat={game.latitude}
+          initialLng={game.longitude}
+          title={game.location || 'Место проведения'}
+        />
+      )}
     </div>
   );
 }
@@ -174,11 +190,13 @@ function GameCardHeader({
   isToday: today,
   isAdmin,
   onDelete,
+  onViewMap,
 }: {
   game: Game;
   isToday: boolean;
   isAdmin: boolean;
   onDelete: () => void;
+  onViewMap?: () => void;
 }) {
   return (
     <div className="flex justify-between items-start mb-4">
@@ -198,7 +216,18 @@ function GameCardHeader({
           {game.location && (
             <>
               <span className="text-zinc-300 dark:text-zinc-700">•</span>
-              <span className="truncate max-w-[200px]" title={game.location}>📍 {game.location}</span>
+              {onViewMap ? (
+                <button
+                  type="button"
+                  onClick={onViewMap}
+                  className="truncate max-w-[200px] text-emerald-600 dark:text-emerald-450 hover:text-emerald-500 hover:underline flex items-center gap-0.5 cursor-pointer text-left font-medium active:scale-95 transition-transform"
+                  title="Посмотреть на карте"
+                >
+                  📍 {game.location} 🗺️
+                </button>
+              ) : (
+                <span className="truncate max-w-[200px]" title={game.location}>📍 {game.location}</span>
+              )}
             </>
           )}
         </div>
