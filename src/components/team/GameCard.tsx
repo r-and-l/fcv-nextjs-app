@@ -120,10 +120,9 @@ export function GameCard({
       />
 
       {isTournament ? (
-        <div className="mb-4 p-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-150 dark:border-zinc-800 rounded-xl flex items-center justify-between text-xs">
-          <span className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-            <span className="icon-badge icon-badge-amber w-6 h-6 text-xs shadow-sm shadow-amber-500/5">🏆</span>
-            <span>{tournamentSummary}</span>
+        <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-150 dark:border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+            🏆 {tournamentSummary}
           </span>
         </div>
       ) : (
@@ -140,11 +139,8 @@ export function GameCard({
       )}
 
       {myAssignedLineup && lineupBadgeColors && (
-        <div className={`mb-3.5 pl-2 pr-3 py-1.5 border rounded-xl flex items-center justify-between text-xs font-semibold ${lineupBadgeColors}`}>
-          <span className="flex items-center gap-2">
-            <span className="icon-badge icon-badge-blue w-6 h-6 text-[11px] shadow-sm shadow-blue-500/5">🎮</span>
-            <span>Вы в составе:</span>
-          </span>
+        <div className={`mb-3.5 px-3 py-2 border rounded-xl flex items-center justify-between text-xs font-semibold ${lineupBadgeColors}`}>
+          <span className="flex items-center gap-1">🎮 Вы в составе:</span>
           <span className="px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
             {myAssignedLineup.name}
           </span>
@@ -159,21 +155,15 @@ export function GameCard({
 
       <button
         onClick={() => router.push(`/team/${teamId}/games/${game.id}/lineups`)}
-        className="w-full pl-2.5 pr-4 py-2 mb-4 flex justify-center items-center gap-2 rounded-xl font-semibold transition-all active:scale-[0.98] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 active:scale-95 cursor-pointer text-sm"
+        className="w-full py-2.5 mb-4 flex justify-center items-center gap-2 rounded-xl font-semibold transition-all active:scale-[0.98] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 active:scale-95 cursor-pointer text-sm"
       >
-        <span className="icon-badge icon-badge-emerald w-6 h-6 text-xs shadow-sm shadow-emerald-500/5">📋</span>
+        <span>📋</span>
         <span>Составы на игру</span>
       </button>
 
-      <div className="flex justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400 px-1 items-center">
-        <span className="flex items-center gap-1.5">
-          <span className="icon-badge icon-badge-emerald w-5 h-5 text-[8px] border-emerald-500/10">🟢</span>
-          <span>Идут: <strong className="text-zinc-800 dark:text-zinc-200">{getGoingCount(game)}</strong></span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="icon-badge icon-badge-rose w-5 h-5 text-[8px] border-rose-500/10">🔴</span>
-          <span>Не идут: <strong className="text-zinc-800 dark:text-zinc-200">{getNotGoingCount(game)}</strong></span>
-        </span>
+      <div className="flex justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400 px-1">
+        <span className="flex items-center gap-1">🟢 Идут: <strong className="text-zinc-800 dark:text-zinc-200">{getGoingCount(game)}</strong></span>
+        <span className="flex items-center gap-1">🔴 Не идут: <strong className="text-zinc-800 dark:text-zinc-200">{getNotGoingCount(game)}</strong></span>
       </div>
     </div>
   );
@@ -203,16 +193,13 @@ function GameCardHeader({
             </span>
           )}
         </div>
-        <div className="text-zinc-500 dark:text-zinc-400 text-xs mt-2.5 flex items-center gap-3 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <span className="icon-badge w-6 h-6 text-[10px] bg-zinc-200/50 dark:bg-zinc-800/60 border-zinc-250/20 dark:border-zinc-700/20">⏰</span>
-            <span>{formatGameTime(game.date)}</span>
-          </span>
+        <div className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 flex items-center gap-1.5 flex-wrap">
+          <span>⏰ {formatGameTime(game.date)}</span>
           {game.location && (
-            <span className="flex items-center gap-1.5 truncate max-w-[200px]" title={game.location}>
-              <span className="icon-badge w-6 h-6 text-[10px] bg-zinc-200/50 dark:bg-zinc-800/60 border-zinc-250/20 dark:border-zinc-700/20">📍</span>
-              <span>{game.location}</span>
-            </span>
+            <>
+              <span className="text-zinc-300 dark:text-zinc-700">•</span>
+              <span className="truncate max-w-[200px]" title={game.location}>📍 {game.location}</span>
+            </>
           )}
         </div>
       </div>
@@ -228,7 +215,7 @@ function GameCardHeader({
               onDelete();
             }
           }}
-          className="text-red-500 hover:text-white p-2 hover:bg-red-500 bg-red-500/10 dark:bg-red-500/10 rounded-xl transition-all duration-200 shrink-0 cursor-pointer active:scale-90 flex items-center justify-center w-8 h-8 text-xs border border-red-500/20"
+          className="text-red-500 hover:text-white p-2 hover:bg-red-500 bg-red-500/10 dark:bg-red-500/10 rounded-xl transition-all duration-200 shrink-0 cursor-pointer active:scale-90"
           title="Удалить игру"
         >
           🗑️
@@ -251,25 +238,23 @@ function RegistrationButtons({
     <div className="grid grid-cols-2 gap-2 mb-3">
       <button
         onClick={onGoing}
-        className={`py-2 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer flex justify-center items-center gap-1.5 ${
+        className={`py-2.5 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer flex justify-center items-center gap-1 ${
           myStatus === 'GOING'
             ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20 border border-emerald-600'
             : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50 hover:bg-zinc-200 dark:hover:bg-zinc-700'
         }`}
       >
-        <span className={`${myStatus === 'GOING' ? 'text-white' : 'text-emerald-500'} font-bold`}>✅</span>
-        <span>Иду</span>
+        <span>✅</span> Иду
       </button>
       <button
         onClick={onNotGoing}
-        className={`py-2 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer flex justify-center items-center gap-1.5 ${
+        className={`py-2.5 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-[0.98] cursor-pointer flex justify-center items-center gap-1 ${
           myStatus === 'NOT_GOING'
             ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20 border border-rose-600'
             : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50 hover:bg-zinc-200 dark:hover:bg-zinc-700'
         }`}
       >
-        <span className={`${myStatus === 'NOT_GOING' ? 'text-white' : 'text-rose-500'} font-bold`}>❌</span>
-        <span>Не иду</span>
+        <span>❌</span> Не иду
       </button>
     </div>
   );

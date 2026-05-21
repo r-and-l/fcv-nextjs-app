@@ -69,10 +69,9 @@ function Dashboard() {
           <h1 className="text-xl font-bold">Мои команды</h1>
           {profile && <button
             onClick={() => router.push('/profile')}
-            className="text-sm bg-zinc-100 dark:bg-zinc-800 pl-1.5 pr-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5"
+            className="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
           >
-            <span className="icon-badge w-6 h-6 text-xs bg-zinc-200/50 dark:bg-zinc-700/50 border-zinc-350/30">👤</span>
-            <span>Профиль</span>
+            👤 Профиль
           </button>}
         </div>
         <TeamList teams={teams} isLoading={isLoading} error={error} />
