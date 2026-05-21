@@ -60,8 +60,9 @@ function TeamDashboard({ teamId }: { teamId: string }) {
     <PageLayout>
       {/* Шапка с названием команды и кнопкой выхода */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-black text-zinc-955 dark:text-zinc-50 tracking-tight flex items-center gap-1.5">
-          ⚽ {team.name}
+        <h1 className="text-xl font-black text-zinc-955 dark:text-zinc-50 tracking-tight flex items-center gap-2">
+          <span className="icon-badge icon-badge-emerald shadow-sm shadow-emerald-500/10">⚽</span>
+          <span>{team.name}</span>
         </h1>
         <BackButton onClick={() => router.push('/?noredirect=1')} label="Выход" />
       </div>
@@ -98,10 +99,10 @@ function TeamDashboard({ teamId }: { teamId: string }) {
 
           <button
             onClick={() => router.push('/profile')}
-            className="px-3 py-2 text-xs font-bold bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1 shadow-sm hover:shadow"
+            className="pl-2 pr-3 py-1.5 text-xs font-bold bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1.5 shadow-sm hover:shadow"
             title="Редактировать профиль"
           >
-            <span>⚙️</span>
+            <span className="icon-badge w-6 h-6 text-[10px] bg-zinc-250/50 dark:bg-zinc-700/50">⚙️</span>
             <span>Профиль</span>
           </button>
         </div>

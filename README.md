@@ -32,7 +32,17 @@ AiFC — это современное премиальное веб-прило�
 
 ## 🛠️ Технологический стек
 
-- **Frontend & Backend:** Next.js (App Router)
+<p align="left">
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Telegram_Bot_API-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" />
+</p>
+
+- **Frontend & Backend:** Next.js (App Router, React 19)
 - **Стилизация:** Tailwind CSS (v4)
 - **База данных:** PostgreSQL
 - **ORM:** Prisma Client
@@ -46,7 +56,7 @@ AiFC — это современное премиальное веб-прило�
 ### 1. Клонирование и установка зависимостей
 ```bash
 git clone <repository_url>
-cd fcv-nextjs-app
+cd aifc-nextjs-app
 npm install
 ```
 
@@ -111,19 +121,19 @@ npm run dev
 
 <div align="center">
   <h3>📱 Главный экран и список команд</h3>
-  <img src="public/screenshots/dashboard.png" alt="Главный экран" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
+  <img src="public/screenshots/dashboard.jpg" alt="Главный экран" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
   <p><i>Список команд пользователя и быстрый переход в личный профиль футболиста.</i></p>
 
   <br/>
 
   <h3>🏃 Страница команды и карточка игрока</h3>
-  <img src="public/screenshots/team_home.png" alt="Страница команды" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
+  <img src="public/screenshots/team_home.jpg" alt="Страница команды" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
   <p><i>Информация о текущей команде, список предстоящих игр с вашим статусом и кнопка настройки профиля.</i></p>
 
   <br/>
 
   <h3>👥 Конструктор составов (Lineups Builder)</h3>
-  <img src="public/screenshots/lineups_builder.png" alt="Конструктор составов" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
+  <img src="public/screenshots/lineups_builder.jpg" alt="Конструктор составов" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
   <p><i>Удобный интерфейс для тренеров и админов: перетаскивание игроков из списка записавшихся в составы команд («Красные» / «Зелёные»), а также добавление легионеров.</i></p>
 
   <br/>
@@ -131,11 +141,11 @@ npm run dev
   <h3>🏆 Режим турнира: Таблица и Матчи (3+ команды)</h3>
   <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
     <div style="text-align: center;">
-      <img src="public/screenshots/tournament_standings.png" alt="Турнирная таблица" width="280" style="border-radius: 12px; border: 1px solid #e4e4e7;"/>
+      <img src="public/screenshots/tournament_standings.jpg" alt="Турнирная таблица" width="280" style="border-radius: 12px; border: 1px solid #e4e4e7;"/>
       <p><i>Динамическая таблица кругового турнира</i></p>
     </div>
     <div style="text-align: center;">
-      <img src="public/screenshots/tournament_matches.png" alt="Список матчей" width="280" style="border-radius: 12px; border: 1px solid #e4e4e7;"/>
+      <img src="public/screenshots/tournament_matches.jpg" alt="Список матчей" width="280" style="border-radius: 12px; border: 1px solid #e4e4e7;"/>
       <p><i>Сетка матчей с вводом результатов</i></p>
     </div>
   </div>
@@ -143,13 +153,13 @@ npm run dev
   <br/>
 
   <h3>⚙️ Настройки администрирования</h3>
-  <img src="public/screenshots/admin_settings.png" alt="Панель администратора" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
+  <img src="public/screenshots/admin_settings.jpg" alt="Панель администратора" width="300" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
   <p><i>Раздел настроек расписания регулярных игр, ручного создания игр и настройки текста автоматических напоминаний.</i></p>
 
   <br/>
 
   <h3>💬 Интеграция в Telegram чате</h3>
-  <img src="public/screenshots/telegram_rsvp.png" alt="Анонс игры в Telegram" width="400" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
+  <img src="public/screenshots/telegram_rsvp.jpg" alt="Анонс игры в Telegram" width="400" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid #e4e4e7;"/>
   <p><i>Анонс игры и сбор участников в групповом чате с кнопками быстрого ответа и перехода в Mini App.</i></p>
 </div>
 

@@ -141,7 +141,7 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
           action={<BackButton onClick={() => router.back()} />}
         />
         <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-4">
-          <span className="text-4xl mb-4">⚠️</span>
+          <span className="icon-badge icon-badge-amber icon-badge-circle w-12 h-12 text-xl mb-4 shadow-sm">⚠️</span>
           <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Игра не найдена</h2>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-xs mb-6">
             Не удалось загрузить данные об этой игре. Возможно, она была удалена.
@@ -184,7 +184,10 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
       {isAdmin && !isFinished && (
         <div className="mb-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col gap-2 shadow-sm">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">⏱️ Длительность игры:</span>
+            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+              <span className="icon-badge icon-badge-amber w-6 h-6 text-[10px]">⏱️</span>
+              <span>Длительность игры:</span>
+            </span>
             <select
               value={game.duration || 60}
               onChange={async (e) => {
@@ -221,7 +224,10 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
           )}
 
           <div className="flex justify-between items-center mt-2 border-t border-zinc-100 dark:border-zinc-800/80 pt-2">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">🔔 Напоминание в чат:</span>
+            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+              <span className="icon-badge icon-badge-blue w-6 h-6 text-[10px]">🔔</span>
+              <span>Напоминание в чат:</span>
+            </span>
             <select
               value={reminderHours}
               onChange={async (e) => {
@@ -293,43 +299,54 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
 
       {isTournament && (
         <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-850/50 border border-zinc-100 dark:border-zinc-800/50 rounded-xl text-xs text-zinc-500 dark:text-zinc-450">
-          📍 <span className="font-semibold text-zinc-700 dark:text-zinc-300">{lineups.length} составов</span>. 
+          <div className="flex items-center gap-2 mb-2">
+            <span className="icon-badge icon-badge-rose w-6 h-6 text-xs shadow-sm shadow-rose-500/5">📍</span>
+            <span className="font-semibold text-zinc-700 dark:text-zinc-300">{lineups.length} составов</span>
+          </div>
           При длительности матча 10 минут доступно: <span className="font-bold text-emerald-600 dark:text-emerald-450">{tournamentCalc?.circles} круга</span> ({tournamentCalc?.totalMatches} игр всего).
         </div>
       )}
 
-      {/* Segmented Control / Tabs for Tournament */}
       {isTournament && miniGames.length > 0 && (
         <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl mb-4 border border-zinc-200/50 dark:border-zinc-800/40">
           <button
             onClick={() => setActiveTab('standings')}
-            className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-1 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === 'standings'
                 ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm border border-zinc-250/20'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            🏆 Таблица
+            <span className="flex items-center justify-center gap-1.5">
+              <span className="icon-badge icon-badge-amber w-5 h-5 text-[10px] shadow-sm">🏆</span>
+              <span>Таблица</span>
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('matches')}
-            className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-1 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === 'matches'
                 ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm border border-zinc-250/20'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            🔄 Матчи
+            <span className="flex items-center justify-center gap-1.5">
+              <span className="icon-badge icon-badge-emerald w-5 h-5 text-[10px] shadow-sm">🔄</span>
+              <span>Матчи</span>
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('lineups')}
-            className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-1 text-center text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === 'lineups'
                 ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm border border-zinc-250/20'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            👥 Составы
+            <span className="flex items-center justify-center gap-1.5">
+              <span className="icon-badge icon-badge-purple w-5 h-5 text-[10px] shadow-sm">👥</span>
+              <span>Составы</span>
+            </span>
           </button>
         </div>
       )}
@@ -337,7 +354,7 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
       {/* Render based on tournament status and active tab */}
       {isTournament && miniGames.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 text-center space-y-4">
-          <div className="text-4xl">📊</div>
+          <span className="icon-badge icon-badge-amber icon-badge-circle w-12 h-12 text-2xl mx-auto flex shadow-sm">📊</span>
           <h3 className="font-bold text-zinc-900 dark:text-zinc-100">Матчи не созданы</h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
             Вы сформировали {lineups.length} составов. Сгенерируйте сетку матчей кругового турнира, чтобы начать вносить результаты игр.
