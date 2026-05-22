@@ -89,7 +89,7 @@ export const gameMessageBuilder = {
     });
 
     if (game && game.telegram_message_id && game.team?.telegram_chat_id) {
-      const text = this.buildMessageText(game, game.registrations);
+      const text = this.buildMessageText(game as any, game.registrations as any);
       
       const botInfo = await telegramApi.getMe();
       const botUsername = botInfo?.result?.username || 'fcv_app_bot';

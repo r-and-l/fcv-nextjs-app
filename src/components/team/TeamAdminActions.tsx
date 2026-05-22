@@ -12,7 +12,7 @@ export function TeamAdminActions({ teamId }: { teamId: string }) {
         className="flex-1 flex items-center justify-center space-x-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-3 rounded-xl transition-colors font-medium border border-blue-500/20"
       >
         <span>⚙️</span>
-        <span>Расписание</span>
+        <span>Настройки</span>
       </button>
       <button
         onClick={() => router.push(`/team/${teamId}/members`)}
