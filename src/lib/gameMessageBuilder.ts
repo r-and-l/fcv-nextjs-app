@@ -1,9 +1,10 @@
 import { telegramApi } from './telegramApi';
 import { prisma } from './prisma';
 import { formatInMoscow } from './timezone';
+import { Game, GameRegistration } from '@/types';
 
 export const gameMessageBuilder = {
-  buildMessageText(game: any, registrations: any[]) {
+  buildMessageText(game: Game, registrations: GameRegistration[]) {
     const dateStr = formatInMoscow(game.date, {
       weekday: 'long',
       month: 'long',
@@ -11,7 +12,7 @@ export const gameMessageBuilder = {
       hour: '2-digit',
       minute: '2-digit',
     });
-
+    
     let text = `⚽ <b>Сбор на игру</b>\n`;
     text += `📅 <b>Дата:</b> ${dateStr}\n`;
     if (game.location) text += `📍 <b>Место:</b> ${game.location}\n`;
@@ -52,7 +53,7 @@ export const gameMessageBuilder = {
     };
   },
 
-  async sendGameMessage(teamChatId: bigint, game: any) {
+  async sendGameMessage(teamChatId: bigint, game: Game) {
     const text = this.buildMessageText(game, []);
     
     // Получаем юзернейм бота для ссылки

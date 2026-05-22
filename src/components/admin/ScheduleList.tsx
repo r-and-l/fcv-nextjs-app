@@ -3,8 +3,10 @@
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 
+import { GameSchedule } from '@/types';
+
 interface ScheduleListProps {
-  schedules: any[];
+  schedules: GameSchedule[];
   isLoading: boolean;
   onDelete: (id: string) => void;
 }

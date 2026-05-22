@@ -1,10 +1,11 @@
 import useSWR from 'swr';
 import { useTelegram } from '@/components/providers/TelegramProvider';
+import { MyTeam } from '@/types';
 
 export function useTeams() {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
+  const fetcher = async (url: string): Promise<{ teams: MyTeam[] }> => {
     if (!initData) return { teams: [] };
     const res = await fetch(url, {
       headers: {
@@ -15,7 +16,7 @@ export function useTeams() {
     return res.json();
   };
 
-  const { data, error, isLoading, mutate } = useSWR(initData ? '/api/my-teams' : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ teams: MyTeam[] }>(initData ? '/api/my-teams' : null, fetcher);
 
   const joinTeam = async (teamId: string) => {
     if (!initData) return;

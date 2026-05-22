@@ -8,7 +8,7 @@ interface LineupCardProps {
   isAdmin: boolean;
   isCoachOrAdmin: boolean;
   onDelete: (lineupId: string) => void;
-  onRemovePlayer: (lineupId: string, userId: number) => void;
+  onRemovePlayer: (lineupId: string, userId: number | bigint) => void;
 }
 
 const positionOrder = ['Вратарь', 'Защитник', 'Полузащитник', 'Нападающий', 'Универсал'] as const;
@@ -99,7 +99,7 @@ export function LineupCard({
                     const userName = p.user.first_name || p.user.username || 'Игрок';
                     return (
                       <div
-                        key={p.user_id}
+                        key={p.user_id.toString()}
                         className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800/30 p-2.5 rounded-xl text-sm hover:bg-zinc-105 dark:hover:bg-zinc-800/60 transition-colors"
                       >
                         <span className="font-medium text-zinc-800 dark:text-zinc-200">{userName}</span>

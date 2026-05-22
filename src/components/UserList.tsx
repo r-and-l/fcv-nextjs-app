@@ -5,22 +5,23 @@ import { useState } from 'react';
 
 interface UserListProps {
   users: User[];
-  onDelete: (id: number) => Promise<void>;
+  onDelete: (id: number | bigint) => Promise<void>;
   isLoading: boolean;
-  error?: any;
+  error?: Error | null;
 }
 
 export function UserList({ users, onDelete, isLoading, error }: UserListProps) {
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [loadingId, setLoadingId] = useState<number | bigint | null>(null);
 
-  const handleDelete = async (userId: number) => {
+  const handleDelete = async (userId: number | bigint) => {
     if (!confirm('Точно удалить пользователя?')) return;
     
     setLoadingId(userId);
     try {
       await onDelete(userId);
-    } catch (e: any) {
-      alert(`Ошибка: ${e.message}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      alert(`Ошибка: ${msg}`);
     } finally {
       setLoadingId(null);
     }
@@ -53,7 +54,7 @@ export function UserList({ users, onDelete, isLoading, error }: UserListProps) {
       </div>
       <ul className="divide-y divide-zinc-200 dark:divide-zinc-800 max-h-64 overflow-y-auto">
         {users.map(u => (
-          <li key={u.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+          <li key={u.id.toString()} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
             <div>
               <p className="font-medium text-sm">{u.first_name} {u.last_name}</p>
               <p className="text-xs text-zinc-500">@{u.username} • ID: {u.id}</p>

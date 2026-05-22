@@ -4,6 +4,7 @@ import { gameService } from '@/services/gameService';
 import { userService } from '@/services/userService';
 import { teamService } from '@/services/teamService';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
+import { MyTeam } from '@/types';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
 
         if (userTeams.length > 0) {
           // У пользователя уже есть команда(ы) — показываем их со ссылками
-          const teamLines = userTeams.map((t: any, i: number) => {
+          const teamLines = userTeams.map((t: MyTeam, i: number) => {
             return `${i + 1}. <b>${t.name || 'Без названия'}</b>`;
           }).join('\n');
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
             `Или добавьте меня в другую группу, чтобы создать новую команду.`;
 
           // Кнопки: открыть приложение (каждую команду) + добавить в группу
-          const teamButtons = userTeams.map((t: any) => ([{
+          const teamButtons = userTeams.map((t: MyTeam) => ([{
             text: `⚽ ${t.name || 'Команда'}`,
             url: `https://t.me/${botUsername}/${shortName}?startapp=${t.id}`
           }]));
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Регистрируем на игру
-          await gameService.registerForGame(gameId, from.id, status as any);
+          await gameService.registerForGame(gameId, from.id, status);
 
           // Обновляем сообщение в группе
           await gameMessageBuilder.updateGameMessage(gameId);

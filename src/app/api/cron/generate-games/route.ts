@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
   try {
     const createdCount = await gameService.generateMissingGames();
     return NextResponse.json({ success: true, createdGames: createdCount });
-  } catch (error: any) {
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error('Cron Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

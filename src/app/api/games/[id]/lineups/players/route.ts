@@ -1,9 +1,10 @@
 import { withTelegramAuth } from '@/lib/api-handler';
 import { gameService } from '@/services/gameService';
+import { RouteContext } from '@/types';
 
-export const POST = withTelegramAuth(async (req, user, context: any) => {
+export const POST = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const gameId = params.id;
+  const gameId = params.id as string;
   const { lineupId, userId } = await req.json();
   
   if (!lineupId || !userId) throw new Error('Missing lineupId or userId');

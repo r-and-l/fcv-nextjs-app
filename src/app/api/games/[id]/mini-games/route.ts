@@ -1,10 +1,11 @@
 import { withTelegramAuth } from '@/lib/api-handler';
 import { gameService } from '@/services/gameService';
 import { prisma } from '@/lib/prisma';
+import { RouteContext } from '@/types';
 
-export const GET = withTelegramAuth(async (req, user, context: any) => {
+export const GET = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const gameId = params.id;
+  const gameId = params.id as string;
   const miniGames = await gameService.getMiniGames(gameId);
   return { miniGames };
 });

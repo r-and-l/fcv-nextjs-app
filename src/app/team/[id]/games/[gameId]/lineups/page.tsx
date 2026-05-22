@@ -17,6 +17,7 @@ import {
 } from '@/components';
 import { formatInMoscow } from '@/lib/timezone';
 import { useTeamData, useGameLineups, useGame, useMiniGames, useTeamMembers } from '@/hooks/useTeamData';
+import { TeamMember } from '@/types';
 
 function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }) {
   const router = useRouter();
@@ -68,16 +69,16 @@ function LineupsDashboard({ teamId, gameId }: { teamId: string; gameId: string }
         ?.filter((r) => r.status === 'GOING')
         .map((r) => Number(r.user_id)) || []
     );
-    return members.filter((m: any) => !goingUserIds.has(Number(m.user_id)));
+    return members.filter((m: TeamMember) => !goingUserIds.has(Number(m.user_id)));
   }, [members, game]);
 
-  const handleRegisterMember = async (userId: number) => {
+  const handleRegisterMember = async (userId: number | bigint) => {
     if (!initData) return;
     try {
       const res = await fetch(`/api/games/${gameId}/register/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
-        body: JSON.stringify({ userId, status: 'GOING' })
+        body: JSON.stringify({ userId: typeof userId === 'bigint' ? Number(userId) : userId, status: 'GOING' })
       });
       if (res.ok) {
         mutateGame();

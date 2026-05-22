@@ -1,7 +1,16 @@
 import useSWR from 'swr';
 import { useTelegram } from '@/components/providers/TelegramProvider';
+import { ProfileUpdateData, User } from '@/types';
 
-const fetcher = async ([url, initData]: [string, string]) => {
+export interface UserProfile extends User {
+  stats?: {
+    wins: number;
+    losses: number;
+    draws: number;
+  };
+}
+
+const fetcher = async ([url, initData]: [string, string]): Promise<{ user: UserProfile }> => {
   const res = await fetch(url, {
     headers: { 'x-telegram-init-data': initData },
   });
@@ -12,12 +21,12 @@ const fetcher = async ([url, initData]: [string, string]) => {
 export function useProfile() {
   const { initData } = useTelegram();
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<{ user: UserProfile }>(
     initData ? ['/api/users/me', initData] : null,
     fetcher
   );
 
-  const updateProfile = async (profileData: any) => {
+  const updateProfile = async (profileData: ProfileUpdateData) => {
     if (!initData) return;
     const res = await fetch('/api/users/me', {
       method: 'PATCH',

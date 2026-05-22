@@ -1,9 +1,9 @@
-'use client';
+import { TeamMemberWithUser } from '@/types';
 
 interface MembersListProps {
-  members: any[];
-  currentUserId?: number;
-  onUpdateRole: (userId: number, role: string) => void;
+  members: TeamMemberWithUser[];
+  currentUserId?: number | bigint;
+  onUpdateRole: (userId: number | bigint, role: string) => void;
 }
 
 export function MembersList({ members, currentUserId, onUpdateRole }: MembersListProps) {
@@ -15,7 +15,7 @@ export function MembersList({ members, currentUserId, onUpdateRole }: MembersLis
 
         return (
           <div
-            key={m.user_id}
+            key={m.user_id.toString()}
             className="flex items-center justify-between bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm"
           >
             <div>

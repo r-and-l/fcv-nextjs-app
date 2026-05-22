@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
-import type { Team } from '@/types';
+import type { MyTeam } from '@/types';
 
-export function TeamList({ teams, isLoading, error }: { teams: Team[], isLoading: boolean, error: any }) {
+export function TeamList({ teams, isLoading, error }: { teams: MyTeam[], isLoading: boolean, error: Error | null }) {
   const router = useRouter();
 
   if (isLoading) return <div className="text-center text-zinc-500 py-8">Загрузка команд...</div>;

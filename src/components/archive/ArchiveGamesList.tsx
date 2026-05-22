@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import type { Game } from '@/types/game';
+import type { Game, GameLineup } from '@/types/game';
 import { getGoingCount, hasTwoLineups } from '@/lib/game';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MatchScoreDisplay } from '@/components/lineups/MatchScoreDisplay';
@@ -141,7 +141,7 @@ function ArchiveGameCard({
         <div className="mb-2">
           {isAdmin ? (
             <GameScorePanel
-              lineups={game.lineups as [any, any]}
+              lineups={game.lineups as [GameLineup, GameLineup]}
               compact
               onUpdateScore={(lineupId, score) => onUpdateScore(game.id, lineupId, score)}
             />

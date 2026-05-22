@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { User } from '@/types/user';
 import { TelegramUser } from '@/types/telegram';
+import { User as PrismaUser } from '@prisma/client';
 
 // Prisma возвращает `id` как BigInt, который стандартный JSON.stringify не умеет сериализовать.
 // Поэтому мы преобразуем его обратно в обычный JS Number, который отлично вмещает ID из Telegram.
-const mapPrismaUser = (user: any): User => ({
+const mapPrismaUser = (user: PrismaUser): User => ({
   id: Number(user.id),
   username: user.username,
   first_name: user.first_name,
@@ -22,8 +23,9 @@ export const userService = {
         orderBy: { created_at: 'desc' }
       });
       return users.map(mapPrismaUser);
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -46,8 +48,9 @@ export const userService = {
         }
       });
       return mapPrismaUser(user);
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -59,8 +62,9 @@ export const userService = {
       await prisma.user.delete({
         where: { id: BigInt(userId) }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -176,8 +180,10 @@ export const userService = {
       }
 
       return { wins, losses, draws };
-    } catch (error: any) {
-      throw new Error(`getUserStats error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`getUserStats error: ${msg}`);
     }
   }
 };
+

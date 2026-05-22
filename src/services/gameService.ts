@@ -36,8 +36,9 @@ export const gameService = {
       await this.createDefaultLineup(game.id);
 
       return game;
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -73,8 +74,9 @@ export const gameService = {
       }
 
       return true;
-    } catch (error: any) {
-      throw new Error(`Delete game error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Delete game error: ${msg}`);
     }
   },
 
@@ -110,8 +112,9 @@ export const gameService = {
           }
         }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -147,8 +150,9 @@ export const gameService = {
           }
         }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -160,7 +164,7 @@ export const gameService = {
       // Удаляем из составов, если статус не GOING
       if (status !== 'GOING') {
         const lineups = await prisma.gameLineup.findMany({ where: { game_id: gameId } });
-        const lineupIds = lineups.map((l: any) => l.id);
+        const lineupIds = lineups.map((l) => l.id);
         if (lineupIds.length > 0) {
           await prisma.lineupPlayer.deleteMany({
             where: {
@@ -185,8 +189,9 @@ export const gameService = {
           status
         }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -271,9 +276,10 @@ export const gameService = {
         }
       }
       return createdCount;
-    } catch (error: any) {
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('generateMissingGames error:', error);
-      throw new Error(`Generate Games Error: ${error.message}`);
+      throw new Error(`Generate Games Error: ${msg}`);
     }
   },
 
@@ -332,7 +338,7 @@ export const gameService = {
   async assignPlayerToLineup(lineupId: string, userId: number, gameId: string) {
     // Сначала удаляем игрока из всех других составов этой игры
     const lineups = await prisma.gameLineup.findMany({ where: { game_id: gameId } });
-    const lineupIds = lineups.map((l: any) => l.id);
+    const lineupIds = lineups.map((l) => l.id);
 
     await prisma.lineupPlayer.deleteMany({
       where: {
@@ -375,8 +381,9 @@ export const gameService = {
           away_lineup: true
         }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -443,8 +450,9 @@ export const gameService = {
       });
 
       return await this.getMiniGames(gameId);
-    } catch (error: any) {
-      throw new Error(`Failed to generate tournament matches: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to generate tournament matches: ${msg}`);
     }
   },
 
@@ -460,8 +468,9 @@ export const gameService = {
           away_score: awayScore
         }
       });
-    } catch (error: any) {
-      throw new Error(`Prisma error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Prisma error: ${msg}`);
     }
   },
 
@@ -513,8 +522,9 @@ export const gameService = {
       }
 
       return sentCount;
-    } catch (error: any) {
-      throw new Error(`Failed to send reminders: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to send reminders: ${msg}`);
     }
   }
 };

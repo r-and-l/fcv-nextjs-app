@@ -19,7 +19,7 @@ export function useUsers() {
 
   // SWR автоматически управляет кэшем, загрузкой и ошибками.
   // Ключ состоит из URL и initData (если initData нет, запрос не идет).
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<{ users: User[] }>(
     initData ? ['/api/users', initData] : null,
     fetcher
   );
@@ -60,10 +60,13 @@ export function useUsers() {
     }
 
     // Обновляем список, можно оптимистично убрать удаленного юзера из кэша
-    mutate((currentData: any) => ({
-      ...currentData,
-      users: currentData?.users?.filter((u: User) => u.id !== userId) || []
-    }), false);
+    mutate((currentData) => {
+      if (!currentData) return { users: [] };
+      return {
+        ...currentData,
+        users: currentData.users?.filter((u: User) => u.id !== userId) || []
+      };
+    }, false);
     
     return res.json();
   };

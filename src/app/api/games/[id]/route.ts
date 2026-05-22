@@ -1,9 +1,10 @@
 import { withTelegramAuth } from '@/lib/api-handler';
 import { prisma } from '@/lib/prisma';
+import { RouteContext } from '@/types';
 
-export const GET = withTelegramAuth(async (req, user, context: any) => {
+export const GET = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const gameId = params.id;
+  const gameId = params.id as string;
   
   const game = await prisma.game.findUnique({
     where: { id: gameId },
@@ -32,9 +33,9 @@ export const GET = withTelegramAuth(async (req, user, context: any) => {
   return { game };
 });
 
-export const PATCH = withTelegramAuth(async (req, user, context: any) => {
+export const PATCH = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const gameId = params.id;
+  const gameId = params.id as string;
   const { duration, reminder_hours, reminder_text } = await req.json();
 
   if (duration === undefined && reminder_hours === undefined && reminder_text === undefined) {

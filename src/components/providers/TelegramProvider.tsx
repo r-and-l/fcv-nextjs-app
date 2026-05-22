@@ -2,14 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import WebApp from '@twa-dev/sdk';
-import { TelegramUser } from '@/types/telegram';
+import { TelegramUser, TelegramChat } from '@/types';
 
 interface TelegramContextType {
   initData: string;
   user: TelegramUser | null;
   isReady: boolean;
   startParam?: string;
-  chat?: { id: number, type: string, title: string };
+  chat?: TelegramChat;
 }
 
 const TelegramContext = createContext<TelegramContextType>({
@@ -29,7 +29,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [initData, setInitData] = useState('');
   const [user, setUser] = useState<TelegramUser | null>(null);
   const [startParam, setStartParam] = useState<string | undefined>();
-  const [chat, setChat] = useState<any>();
+  const [chat, setChat] = useState<TelegramChat | undefined>();
 
   useEffect(() => {
     // Ждем монтирования на клиенте

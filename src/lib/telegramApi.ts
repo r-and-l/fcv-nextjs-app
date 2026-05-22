@@ -1,3 +1,5 @@
+import { TelegramReplyMarkup } from '@/types';
+
 export const telegramApi = {
   async getMe() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -8,7 +10,7 @@ export const telegramApi = {
     return res.json();
   },
 
-  async sendMessage(chatId: string | number | bigint, text: string, replyMarkup?: any) {
+  async sendMessage(chatId: string | number | bigint, text: string, replyMarkup?: TelegramReplyMarkup) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) throw new Error('TELEGRAM_BOT_TOKEN is not defined');
     
@@ -26,7 +28,8 @@ export const telegramApi = {
     return res.json();
   },
 
-  async editMessageText(chatId: string | number | bigint, messageId: string | number | bigint, text: string, replyMarkup?: any) {
+  async editMessageText(chatId: string | number | bigint, messageId: string | number | bigint, text: string, replyMarkup?: TelegramReplyMarkup) {
+
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) throw new Error('TELEGRAM_BOT_TOKEN is not defined');
 

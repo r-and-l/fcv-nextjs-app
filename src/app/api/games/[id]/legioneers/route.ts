@@ -2,10 +2,11 @@ import { withTelegramAuth } from '@/lib/api-handler';
 import { gameService } from '@/services/gameService';
 import { prisma } from '@/lib/prisma';
 import { gameMessageBuilder } from '@/lib/gameMessageBuilder';
+import { RouteContext } from '@/types';
 
-export const POST = withTelegramAuth(async (req, user, context: any) => {
+export const POST = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const gameId = params.id;
+  const gameId = params.id as string;
   const { name } = await req.json();
 
   if (!name || !name.trim()) {

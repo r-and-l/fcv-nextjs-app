@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { NominatimResult, OverpassElement } from '@/types';
 
 interface MapComponentProps {
   mode: 'select' | 'view';
@@ -12,7 +13,7 @@ interface MapComponentProps {
   height?: string;
 }
 
-function getReadableAddress(data: any): string {
+function getReadableAddress(data: NominatimResult): string {
   if (!data) return '';
   if (!data.address) return data.display_name || '';
   
@@ -58,13 +59,20 @@ export default function MapComponent({
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const sportsLayerRef = useRef<L.LayerGroup | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
   const [locating, setLocating] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Keep onChange in a ref to avoid map recreation / fetch loops when onChange is unstable
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // 1. Detect dark mode
   useEffect(() => {
@@ -75,7 +83,7 @@ export default function MapComponent({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  // Inject CSS for custom pulsing marker
+  // Inject CSS for custom pulsing marker and soccer fields
   useEffect(() => {
     const styleId = 'leaflet-custom-marker-style';
     if (!document.getElementById(styleId)) {
@@ -100,6 +108,37 @@ export default function MapComponent({
         .leaflet-container {
           font-family: inherit;
           border-radius: 12px;
+        }
+        .soccer-tooltip {
+          background-color: #18181b !important;
+          color: #f4f4f5 !important;
+          border: 1px solid #3f3f46 !important;
+          border-radius: 8px !important;
+          padding: 4px 8px !important;
+          font-size: 11px !important;
+          font-weight: 500 !important;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+        }
+        .soccer-tooltip::before {
+          border-top-color: #18181b !important;
+          border-bottom-color: #18181b !important;
+        }
+        .soccer-map-marker-inner {
+          width: 24px;
+          height: 24px;
+          background-color: #10b981;
+          border: 2px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .soccer-map-marker-inner:hover {
+          transform: scale(1.2);
+          background-color: #059669 !important;
         }
       `;
       document.head.appendChild(style);
@@ -138,6 +177,10 @@ export default function MapComponent({
     }).addAttribution('© OpenStreetMap contributors, © CARTO').addTo(map);
 
     tileLayerRef.current = tileLayer;
+
+    // Add Layer Group for sports facilities
+    const sportsLayer = L.layerGroup().addTo(map);
+    sportsLayerRef.current = sportsLayer;
 
     // Add Marker if coordinates are provided, or in select mode (we can let user click)
     const icon = L.divIcon({
@@ -196,8 +239,8 @@ export default function MapComponent({
           console.error('Reverse geocoding error:', err);
         }
 
-        if (onChange) {
-          onChange(lat, lng, address);
+        if (onChangeRef.current) {
+          onChangeRef.current(lat, lng, address);
         }
       });
     }
@@ -206,11 +249,13 @@ export default function MapComponent({
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
+      sportsLayerRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDark]); // Reinitialize if dark/light theme changes
 
   // Update map center/marker if initial coordinates change externally (useful when selecting address from search)
-  const setLocation = (lat: number, lng: number, address: string) => {
+  const setLocation = useCallback((lat: number, lng: number, address: string) => {
     if (!mapRef.current) return;
     mapRef.current.setView([lat, lng], 15);
 
@@ -245,12 +290,135 @@ export default function MapComponent({
     }
 
     setSelectedAddress(address);
-    if (onChange) {
-      onChange(lat, lng, address);
+    if (onChangeRef.current) {
+      onChangeRef.current(lat, lng, address);
     }
-  };
+  }, []);
 
-  const handleSearchResultClick = (result: any) => {
+  // 3. Fetch sports facilities (pitches, stadiums) in the current view using Overpass API
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mode !== 'select') return;
+
+    let debounceTimer: NodeJS.Timeout;
+
+    const queryFacilities = async () => {
+      const zoom = map.getZoom();
+      if (zoom < 14) {
+        // Clear sports layer if user is zoomed out too far
+        if (sportsLayerRef.current) {
+          sportsLayerRef.current.clearLayers();
+        }
+        return;
+      }
+
+      const bounds = map.getBounds();
+      const south = bounds.getSouth();
+      const west = bounds.getWest();
+      const north = bounds.getNorth();
+      const east = bounds.getEast();
+      const bbox = `${south},${west},${north},${east}`;
+
+      // Overpass API query for pitches, stadiums, and sports centers
+      const query = `[out:json][timeout:25];(node["leisure"="pitch"](${bbox});way["leisure"="pitch"](${bbox});node["leisure"="stadium"](${bbox});way["leisure"="stadium"](${bbox});node["leisure"="sports_centre"](${bbox});way["leisure"="sports_centre"](${bbox}););out center;`;
+      const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Overpass API error');
+        const data = await res.json();
+
+        if (!sportsLayerRef.current || !mapRef.current) return;
+
+        // Clear existing markers
+        sportsLayerRef.current.clearLayers();
+
+        const soccerIcon = L.divIcon({
+          className: 'soccer-map-marker',
+          html: `
+            <div class="soccer-map-marker-inner">
+              <span style="font-size: 13px; line-height: 1; margin-top: -1px;">⚽</span>
+            </div>
+          `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+
+        data.elements?.forEach((el: OverpassElement) => {
+          const lat = el.lat || (el.center && el.center.lat);
+          const lon = el.lon || (el.center && el.center.lon);
+
+          if (!lat || !lon) return;
+
+          const tags = el.tags || {};
+          const sport = tags.sport;
+          const leisure = tags.leisure;
+
+          let typeLabel = 'Спортивная площадка';
+          if (leisure === 'stadium') typeLabel = 'Стадион';
+          else if (leisure === 'sports_centre') typeLabel = 'Спортивный центр';
+
+          let sportLabel = '';
+          if (sport) {
+            if (sport === 'soccer' || sport === 'football') sportLabel = 'футбольное';
+            else if (sport === 'basketball') sportLabel = 'баскетбольное';
+            else if (sport === 'tennis') sportLabel = 'теннисный';
+            else if (sport === 'volleyball') sportLabel = 'волейбольное';
+          }
+
+          let name = tags.name;
+          if (!name) {
+            if (sportLabel) {
+              name = `${sportLabel.charAt(0).toUpperCase() + sportLabel.slice(1)} поле`;
+            } else {
+              name = typeLabel;
+            }
+          }
+
+          const fullLabel = tags.name
+            ? `${tags.name} (${sportLabel ? sportLabel + ' ' : ''}${leisure === 'stadium' ? 'стадион' : 'поле'})`
+            : `${sportLabel ? sportLabel.charAt(0).toUpperCase() + sportLabel.slice(1) + ' ' : ''}${typeLabel.toLowerCase()}`;
+
+          const marker = L.marker([lat, lon], { icon: soccerIcon });
+
+          // Tooltip
+          marker.bindTooltip(fullLabel, {
+            direction: 'top',
+            offset: [0, -10],
+            className: 'soccer-tooltip',
+          });
+
+          // Click handler
+          marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            setLocation(lat, lon, name);
+          });
+
+          if (sportsLayerRef.current) {
+            marker.addTo(sportsLayerRef.current);
+          }
+        });
+      } catch (err) {
+        console.error('Failed to fetch sports facilities:', err);
+      }
+    };
+
+    const handleMapChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(queryFacilities, 600);
+    };
+
+    map.on('moveend', handleMapChange);
+    // Trigger initial query
+    queryFacilities();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      map.off('moveend', handleMapChange);
+    };
+  }, [mode, isDark, setLocation]);
+
+  const handleSearchResultClick = (result: NominatimResult) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
     const readableName = getReadableAddress(result);
@@ -348,8 +516,8 @@ export default function MapComponent({
           console.error('Reverse geocoding error:', err);
         }
 
-        if (onChange) {
-          onChange(latitude, longitude, address);
+        if (onChangeRef.current) {
+          onChangeRef.current(latitude, longitude, address);
         }
         setLocating(false);
       },

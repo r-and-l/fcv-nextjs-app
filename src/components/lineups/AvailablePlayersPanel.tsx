@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import type { GameRegistration, GameLineup } from '@/types';
+import type { GameRegistration, GameLineup, TeamMember } from '@/types';
 
 interface AvailablePlayersPanelProps {
   players: GameRegistration[];
   lineups: GameLineup[];
-  onAssign: (lineupId: string, userId: number) => void;
+  onAssign: (lineupId: string, userId: number | bigint) => void;
   isAdmin?: boolean;
-  unregisteredMembers?: any[];
-  onRegisterMember?: (userId: number) => void;
+  unregisteredMembers?: TeamMember[];
+  onRegisterMember?: (userId: number | bigint) => void;
   onAddLegioneer?: (name: string) => void;
 }
 

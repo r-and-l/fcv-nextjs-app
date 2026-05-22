@@ -1,18 +1,21 @@
 import useSWR from 'swr';
 import { useTelegram } from '@/components/providers/TelegramProvider';
-import type { Game, GameLineup } from '@/types/game';
+import { Game, GameLineup, MiniGame, MyTeam, TeamMemberWithUser } from '@/types';
 
 export function useTeamData(teamId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
+  const fetcher = async (url: string): Promise<{ team: MyTeam } | null> => {
     if (!initData) return null;
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch team');
     return res.json();
   };
 
-  const { data, error, isLoading } = useSWR(initData && teamId ? `/api/teams/${teamId}` : null, fetcher);
+  const { data, error, isLoading } = useSWR<{ team: MyTeam } | null>(
+    initData && teamId ? `/api/teams/${teamId}` : null,
+    fetcher
+  );
   return { team: data?.team, isLoading, error };
 }
 
@@ -125,21 +128,24 @@ export function useArchiveGames(teamId: string) {
 export function useTeamMembers(teamId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string) => {
-    if (!initData) return [];
+  const fetcher = async (url: string): Promise<{ members: TeamMemberWithUser[] }> => {
+    if (!initData) return { members: [] };
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch members');
     return res.json();
   };
 
-  const { data, error, isLoading, mutate } = useSWR(initData && teamId ? `/api/teams/${teamId}/members` : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ members: TeamMemberWithUser[] }>(
+    initData && teamId ? `/api/teams/${teamId}/members` : null,
+    fetcher
+  );
 
-  const updateRole = async (targetUserId: number, newRole: string) => {
+  const updateRole = async (targetUserId: number | bigint, newRole: string) => {
     if (!initData) return;
     const res = await fetch(`/api/teams/${teamId}/members`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
-      body: JSON.stringify({ targetUserId, newRole })
+      body: JSON.stringify({ targetUserId: typeof targetUserId === 'bigint' ? Number(targetUserId) : targetUserId, newRole })
     });
     if (res.ok) mutate();
   };
@@ -181,17 +187,17 @@ export function useGameLineups(gameId: string) {
     if (res.ok) mutate();
   };
 
-  const assignPlayer = async (lineupId: string, userId: number) => {
+  const assignPlayer = async (lineupId: string, userId: number | bigint) => {
     if (!initData) return;
     const res = await fetch(`/api/games/${gameId}/lineups/players`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData },
-      body: JSON.stringify({ lineupId, userId })
+      body: JSON.stringify({ lineupId, userId: typeof userId === 'bigint' ? Number(userId) : userId })
     });
     if (res.ok) mutate();
   };
 
-  const removePlayer = async (lineupId: string, userId: number) => {
+  const removePlayer = async (lineupId: string, userId: number | bigint) => {
     if (!initData) return;
     const res = await fetch(`/api/games/${gameId}/lineups/players?lineupId=${lineupId}&userId=${userId}`, {
       method: 'DELETE',
@@ -225,14 +231,14 @@ export function useGameLineups(gameId: string) {
 export function useMiniGames(gameId: string) {
   const { initData } = useTelegram();
 
-  const fetcher = async (url: string): Promise<{ miniGames: any[] }> => {
+  const fetcher = async (url: string): Promise<{ miniGames: MiniGame[] }> => {
     if (!initData) return { miniGames: [] };
     const res = await fetch(url, { headers: { 'x-telegram-init-data': initData } });
     if (!res.ok) throw new Error('Failed to fetch mini-games');
     return res.json();
   };
 
-  const { data, error, isLoading, mutate } = useSWR<{ miniGames: any[] }>(
+  const { data, error, isLoading, mutate } = useSWR<{ miniGames: MiniGame[] }>(
     initData && gameId ? `/api/games/${gameId}/mini-games` : null,
     fetcher
   );

@@ -3,16 +3,10 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select, Button } from '@/components/ui/form';
-
-interface TeamType {
-  id: string;
-  default_reminder_hours: number | null;
-  default_reminder_text: string | null;
-  game_announce_hours?: number | null;
-}
+import { Team } from '@/types';
 
 interface ReminderSettingsFormProps {
-  team: TeamType;
+  team: Team;
   initData: string;
 }
 
@@ -21,7 +15,9 @@ export function ReminderSettingsForm({ team, initData }: ReminderSettingsFormPro
     String(team.game_announce_hours ?? 72)
   );
   const [reminderHours, setReminderHours] = useState<string>(
-    team.default_reminder_hours === null ? 'disabled' : String(team.default_reminder_hours)
+    team.default_reminder_hours === undefined || team.default_reminder_hours === null
+      ? 'disabled'
+      : String(team.default_reminder_hours)
   );
   const [text, setText] = useState<string>(
     team.default_reminder_text || 'Напоминание: скоро игра! Не забудьте записаться в приложении!'

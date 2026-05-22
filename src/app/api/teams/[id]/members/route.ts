@@ -1,16 +1,17 @@
 import { withTelegramAuth } from '@/lib/api-handler';
 import { teamService } from '@/services/teamService';
+import { RouteContext } from '@/types';
 
-export const GET = withTelegramAuth(async (req, user, context: any) => {
+export const GET = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const teamId = params.id;
+  const teamId = params.id as string;
   const members = await teamService.getMembers(user.id, teamId);
   return { members };
 });
 
-export const PATCH = withTelegramAuth(async (req, user, context: any) => {
+export const PATCH = withTelegramAuth(async (req, user, context: RouteContext) => {
   const params = await context.params;
-  const teamId = params.id;
+  const teamId = params.id as string;
   const { targetUserId, newRole } = await req.json();
   
   if (!targetUserId || !newRole) {

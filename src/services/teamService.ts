@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { TelegramUser } from '@/types/telegram';
+import { TelegramUser, TeamRole } from '@/types';
 import { userService } from './userService';
 
 export const teamService = {
@@ -111,7 +111,7 @@ export const teamService = {
     }));
   },
 
-  async updateMemberRole(userId: number, teamId: string, targetUserId: number, newRole: any) {
+  async updateMemberRole(userId: number, teamId: string, targetUserId: number, newRole: TeamRole) {
     const adminMember = await prisma.teamMember.findUnique({
       where: { user_id_team_id: { user_id: BigInt(userId), team_id: teamId } }
     });

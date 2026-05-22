@@ -5,7 +5,7 @@ export interface GameUser {
 }
 
 export interface GameRegistration {
-  user_id: number;
+  user_id: number | bigint;
   status: 'GOING' | 'NOT_GOING' | 'MAYBE';
   user: GameUser;
 }
@@ -14,7 +14,7 @@ export interface GameLineup {
   id: string;
   name: string;
   score?: number | null;
-  players?: { user_id: number; user: GameUser }[];
+  players?: { user_id: number | bigint; user: GameUser }[];
 }
 
 export interface MiniGame {
@@ -30,10 +30,11 @@ export interface MiniGame {
 
 export interface Game {
   id: string;
-  date: string;
+  date: string | Date;
   location?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  description?: string | null;
   duration?: number | null;
   reminder_hours?: number | null;
   reminder_text?: string | null;
@@ -41,4 +42,14 @@ export interface Game {
   registrations?: GameRegistration[];
   lineups?: GameLineup[];
   mini_games?: MiniGame[];
+}
+
+export interface GameSchedule {
+  id: string;
+  team_id: string;
+  day_of_week: number;
+  time: string;
+  location?: string | null;
+  duration?: number;
+  created_at?: string | Date;
 }

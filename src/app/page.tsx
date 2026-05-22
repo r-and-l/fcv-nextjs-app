@@ -8,6 +8,7 @@ import { TeamList } from '@/components/TeamList';
 import { useUsers } from '@/hooks/useUsers';
 import { useTeams } from '@/hooks/useTeams';
 import { useProfile } from '@/hooks/useProfile';
+import { MyTeam } from '@/types';
 
 function Dashboard() {
   const router = useRouter();
@@ -47,7 +48,7 @@ function Dashboard() {
 
         if (!noredirect) {
           if (chat?.id) {
-            const currentTeam = teams.find((t: any) => Number(t.telegram_chat_id) === chat.id);
+            const currentTeam = teams.find((t: MyTeam) => Number(t.telegram_chat_id) === chat.id);
             if (currentTeam) {
               router.replace(`/team/${currentTeam.id}`);
               return;
