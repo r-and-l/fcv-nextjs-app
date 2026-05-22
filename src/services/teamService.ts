@@ -186,5 +186,59 @@ export const teamService = {
       where: { id: teamId },
       data: settings
     });
+  },
+
+  async getRecentLocations(teamId: string) {
+    const games = await prisma.game.findMany({
+      where: {
+        team_id: teamId,
+        location: { not: null },
+      },
+      select: {
+        location: true,
+        latitude: true,
+        longitude: true,
+        created_at: true,
+      },
+      orderBy: { created_at: 'desc' },
+      take: 50,
+    });
+
+    const schedules = await prisma.teamSchedule.findMany({
+      where: {
+        team_id: teamId,
+        location: { not: null },
+      },
+      select: {
+        location: true,
+        latitude: true,
+        longitude: true,
+        created_at: true,
+      },
+      orderBy: { created_at: 'desc' },
+      take: 20,
+    });
+
+    const combined = [...games, ...schedules];
+    combined.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+
+    const seen = new Set<string>();
+    const uniqueLocations: { location: string; latitude: number | null; longitude: number | null }[] = [];
+
+    for (const item of combined) {
+      if (item.location) {
+        const normalized = item.location.trim().toLowerCase();
+        if (!seen.has(normalized)) {
+          seen.add(normalized);
+          uniqueLocations.push({
+            location: item.location.trim(),
+            latitude: item.latitude,
+            longitude: item.longitude,
+          });
+        }
+      }
+    }
+
+    return uniqueLocations.slice(0, 10);
   }
 };

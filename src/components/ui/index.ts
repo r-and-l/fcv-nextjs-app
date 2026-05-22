@@ -4,3 +4,5 @@ export { Card } from './Card';
 export { LoadingScreen } from './LoadingScreen';
 export { EmptyState } from './EmptyState';
 export { Field, Input, Select, Button, inputClass } from './form';
+export { StatCard } from './StatCard';
+

@@ -12,6 +12,41 @@ interface MapComponentProps {
   height?: string;
 }
 
+function getReadableAddress(data: any): string {
+  if (!data) return '';
+  if (!data.address) return data.display_name || '';
+  
+  const addr = data.address;
+  const parts: string[] = [];
+
+  // Ищем конкретное название объекта
+  const placeName = addr.amenity || addr.leisure || addr.sport || addr.building || addr.tourism || addr.shop || addr.historic || addr.railway || addr.aeroway;
+  if (placeName) {
+    parts.push(placeName);
+  }
+
+  // Добавляем улицу и дом
+  if (addr.road) {
+    let roadStr = addr.road;
+    if (addr.house_number) {
+      roadStr += `, ${addr.house_number}`;
+    }
+    parts.push(roadStr);
+  }
+
+  // Добавляем город или населенный пункт
+  const city = addr.city || addr.town || addr.village || addr.hamlet;
+  if (city && city !== placeName) {
+    parts.push(city);
+  }
+
+  if (parts.length > 0) {
+    return parts.join(', ');
+  }
+
+  return data.display_name || '';
+}
+
 export default function MapComponent({
   mode,
   initialLat,
@@ -28,6 +63,8 @@ export default function MapComponent({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
+  const [locating, setLocating] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   // 1. Detect dark mode
   useEffect(() => {
@@ -151,8 +188,8 @@ export default function MapComponent({
             headers: { 'User-Agent': 'FCV-WebApp/1.0 (contact: info@fcv.ru)' }
           });
           const data = await res.json();
-          if (data && data.display_name) {
-            address = data.display_name;
+          if (data) {
+            address = getReadableAddress(data);
             setSelectedAddress(address);
           }
         } catch (err) {
@@ -216,7 +253,8 @@ export default function MapComponent({
   const handleSearchResultClick = (result: any) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
-    setLocation(lat, lng, result.display_name);
+    const readableName = getReadableAddress(result);
+    setLocation(lat, lng, readableName);
     setSearchResults([]);
     setSearchQuery('');
   };
@@ -226,7 +264,17 @@ export default function MapComponent({
     if (!searchQuery.trim()) return;
     setSearchLoading(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`, {
+      let url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(searchQuery)}`;
+      
+      // Добавляем координаты для приоритезации поиска в текущей области
+      if (mapRef.current) {
+        const center = mapRef.current.getCenter();
+        url += `&lat=${center.lat}&lon=${center.lng}`;
+      } else if (userCoords) {
+        url += `&lat=${userCoords.lat}&lon=${userCoords.lng}`;
+      }
+
+      const res = await fetch(url, {
         headers: {
           'User-Agent': 'FCV-WebApp/1.0 (contact: info@fcv.ru)'
         }
@@ -238,6 +286,80 @@ export default function MapComponent({
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleLocateUser = () => {
+    if (!navigator.geolocation) {
+      alert('Геолокация не поддерживается вашим браузером');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        
+        if (mapRef.current) {
+          mapRef.current.setView([latitude, longitude], 15);
+          
+          const icon = L.divIcon({
+            className: 'custom-map-marker',
+            html: `
+              <div style="
+                width: 24px;
+                height: 24px;
+                background-color: var(--primary, #10b981);
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+              ">
+                <div style="width: 6px; height: 6px; background-color: white; border-radius: 50%;"></div>
+                <div class="marker-pulse-ring"></div>
+              </div>
+            `,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          });
+
+          if (markerRef.current) {
+            markerRef.current.setLatLng([latitude, longitude]);
+          } else {
+            const marker = L.marker([latitude, longitude], { icon }).addTo(mapRef.current);
+            markerRef.current = marker;
+          }
+        }
+
+        // Выполняем реверс-геокодинг для получения адреса
+        let address = '';
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
+            headers: { 'User-Agent': 'FCV-WebApp/1.0 (contact: info@fcv.ru)' }
+          });
+          const data = await res.json();
+          if (data) {
+            address = getReadableAddress(data);
+            setSelectedAddress(address);
+          }
+        } catch (err) {
+          console.error('Reverse geocoding error:', err);
+        }
+
+        if (onChange) {
+          onChange(latitude, longitude, address);
+        }
+        setLocating(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Не удалось получить ваше местоположение. Пожалуйста, разрешите доступ к геопозиции в браузере.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   return (
@@ -278,11 +400,32 @@ export default function MapComponent({
         </div>
       )}
 
-      <div
-        ref={mapContainerRef}
-        style={{ height }}
-        className="w-full border border-zinc-200 dark:border-zinc-700 shadow-inner z-0 rounded-xl overflow-hidden"
-      />
+      <div className="relative">
+        <div
+          ref={mapContainerRef}
+          style={{ height }}
+          className="w-full border border-zinc-200 dark:border-zinc-700 shadow-inner z-0 rounded-xl overflow-hidden"
+        />
+
+        {mode === 'select' && (
+          <button
+            type="button"
+            onClick={handleLocateUser}
+            disabled={locating}
+            className="absolute bottom-4 right-4 z-[400] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-750 dark:text-zinc-200 p-2.5 rounded-full shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+            title="Определить мое местоположение"
+          >
+            {locating ? (
+              <span className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
 
       {selectedAddress && mode === 'select' && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">

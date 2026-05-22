@@ -18,7 +18,7 @@ interface MapModalProps {
   mode: 'select' | 'view';
   initialLat?: number | null;
   initialLng?: number | null;
-  onSave?: (lat: number, lng: number) => void;
+  onSave?: (lat: number, lng: number, address?: string) => void;
   title?: string;
 }
 
@@ -32,6 +32,7 @@ export function MapModal({
   title = 'Выбор местоположения',
 }: MapModalProps) {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [address, setAddress] = useState<string>('');
 
   useEffect(() => {
     if (initialLat && initialLng) {
@@ -39,6 +40,7 @@ export function MapModal({
     } else {
       setCoords(null);
     }
+    setAddress('');
   }, [initialLat, initialLng, isOpen]);
 
   // Prevent background scrolling when modal is open
@@ -57,13 +59,16 @@ export function MapModal({
 
   const handleSave = () => {
     if (coords && onSave) {
-      onSave(coords.lat, coords.lng);
+      onSave(coords.lat, coords.lng, address);
       onClose();
     }
   };
 
-  const handleMapChange = (lat: number, lng: number) => {
+  const handleMapChange = (lat: number, lng: number, addr?: string) => {
     setCoords({ lat, lng });
+    if (addr) {
+      setAddress(addr);
+    }
   };
 
   // External routing links

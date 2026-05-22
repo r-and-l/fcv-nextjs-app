@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select, Button } from '@/components/ui/form';
 import { MapModal } from '@/components/common/MapModal';
+import { useRecentLocations } from '@/hooks/useRecentLocations';
 
 interface ManualGameFormProps {
   teamId: string;
@@ -20,6 +21,8 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  const { locations: recentLocations, mutateLocations } = useRecentLocations(teamId);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +53,9 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
         setDuration('60');
         setLatitude(undefined);
         setLongitude(undefined);
+        if (mutateLocations) {
+          mutateLocations();
+        }
       } else {
         alert('Ошибка при создании игры');
       }
@@ -103,6 +109,37 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
                 </button>
               </div>
             )}
+
+            {recentLocations && recentLocations.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                  Недавние места:
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto py-0.5">
+                  {recentLocations.map((loc, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setLocation(loc.location);
+                        if (loc.latitude !== null && loc.longitude !== null) {
+                          setLatitude(loc.latitude);
+                          setLongitude(loc.longitude);
+                        } else {
+                          setLatitude(undefined);
+                          setLongitude(undefined);
+                        }
+                      }}
+                      className="px-2 py-0.5 bg-zinc-150 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-750 dark:text-zinc-300 rounded-lg text-[11px] transition-all active:scale-95 border border-zinc-200/50 dark:border-zinc-800 text-left truncate max-w-[150px] cursor-pointer flex items-center gap-1"
+                      title={loc.location}
+                    >
+                      <span>📍</span>
+                      <span className="truncate">{loc.location}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </Field>
           <Field label="Длительность">
             <Select value={duration} onChange={(e) => setDuration(e.target.value)}>
@@ -136,9 +173,12 @@ export function ManualGameForm({ teamId, initData }: ManualGameFormProps) {
         mode="select"
         initialLat={latitude}
         initialLng={longitude}
-        onSave={(lat, lng) => {
+        onSave={(lat, lng, addr) => {
           setLatitude(lat);
           setLongitude(lng);
+          if (addr) {
+            setLocation(addr);
+          }
         }}
         title="Выбрать место игры"
       />

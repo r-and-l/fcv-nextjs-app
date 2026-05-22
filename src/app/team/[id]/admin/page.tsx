@@ -40,7 +40,7 @@ function AdminDashboard({ teamId }: { teamId: string }) {
       />
       <ReminderSettingsForm team={team} initData={initData || ''} />
       <ScheduleList schedules={schedules} isLoading={schedLoading} onDelete={deleteSchedule} />
-      <AddScheduleForm onAdd={addSchedule} />
+      <AddScheduleForm onAdd={addSchedule} teamId={teamId} />
       <ManualGameForm teamId={teamId} initData={initData || ''} />
     </PageLayout>
   );

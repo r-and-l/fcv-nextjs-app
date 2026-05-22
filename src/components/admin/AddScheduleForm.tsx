@@ -5,12 +5,14 @@ import { Card } from '@/components/ui/Card';
 import { Field, Input, Select, Button } from '@/components/ui/form';
 import { DAYS_OF_WEEK } from '@/lib/constants';
 import { MapModal } from '@/components/common/MapModal';
+import { useRecentLocations } from '@/hooks/useRecentLocations';
 
 interface AddScheduleFormProps {
   onAdd: (day: number, time: string, location: string, duration?: number, latitude?: number, longitude?: number) => Promise<void>;
+  teamId?: string;
 }
 
-export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
+export function AddScheduleForm({ onAdd, teamId }: AddScheduleFormProps) {
   const [day, setDay] = useState(1);
   const [time, setTime] = useState('19:00');
   const [location, setLocation] = useState('');
@@ -20,6 +22,8 @@ export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
+  const { locations: recentLocations, mutateLocations } = useRecentLocations(teamId);
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAdding(true);
@@ -28,6 +32,9 @@ export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
     setLatitude(undefined);
     setLongitude(undefined);
     setIsAdding(false);
+    if (mutateLocations) {
+      mutateLocations();
+    }
   };
 
   return (
@@ -81,6 +88,37 @@ export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
                 </button>
               </div>
             )}
+            
+            {recentLocations && recentLocations.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                  Недавние места:
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto py-0.5">
+                  {recentLocations.map((loc, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setLocation(loc.location);
+                        if (loc.latitude !== null && loc.longitude !== null) {
+                          setLatitude(loc.latitude);
+                          setLongitude(loc.longitude);
+                        } else {
+                          setLatitude(undefined);
+                          setLongitude(undefined);
+                        }
+                      }}
+                      className="px-2 py-0.5 bg-zinc-150 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-750 dark:text-zinc-300 rounded-lg text-[11px] transition-all active:scale-95 border border-zinc-200/50 dark:border-zinc-800 text-left truncate max-w-[150px] cursor-pointer flex items-center gap-1"
+                      title={loc.location}
+                    >
+                      <span>📍</span>
+                      <span className="truncate">{loc.location}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </Field>
           <Field label="Длительность">
             <Select value={duration} onChange={(e) => setDuration(e.target.value)}>
@@ -106,9 +144,12 @@ export function AddScheduleForm({ onAdd }: AddScheduleFormProps) {
         mode="select"
         initialLat={latitude}
         initialLng={longitude}
-        onSave={(lat, lng) => {
+        onSave={(lat, lng, addr) => {
           setLatitude(lat);
           setLongitude(lng);
+          if (addr) {
+            setLocation(addr);
+          }
         }}
         title="Выбрать место тренировки"
       />
